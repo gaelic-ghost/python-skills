@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pytest for UV Workspaces"
+  short_description: "Set up and run pytest with uv"
+  default_prompt: "Use $uv-pytest-unit-testing to set up pytest for a uv project or workspace and run unit tests with optional package targeting."

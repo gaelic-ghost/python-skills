@@ -1,0 +1,37 @@
+# __SERVICE_NAME__
+
+Starter Python service scaffolded with `uv` and `FastAPI`.
+
+## Requirements
+
+- macOS
+- `uv`
+- Python 3.11+
+
+## Install dependencies
+
+```bash
+uv sync
+```
+
+## Run locally
+
+```bash
+uv run fastapi dev app/main.py
+```
+
+Open http://127.0.0.1:8000/docs for Swagger UI.
+
+## Run tests
+
+```bash
+uv run pytest
+uv run ruff check .
+uv run mypy .
+```
+
+## Project layout
+
+- `app/main.py`: FastAPI app with health endpoint
+- `tests/test_health.py`: basic API test
+- `pyproject.toml`: project metadata and dependencies

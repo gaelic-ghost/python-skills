@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bootstrap UV Python Workspace"
+  short_description: "Bootstrap uv Python projects and workspaces"
+  default_prompt: "Use $bootstrap-uv-python-workspace to scaffold a uv Python project or workspace with package/service profiles."
