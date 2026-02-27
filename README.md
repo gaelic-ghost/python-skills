@@ -1,5 +1,21 @@
 # python-skills
 
+## Quick Add (Skills CLI)
+
+Local Install
+
+```bash
+npx skills add gaelic-ghost/python-skills -a codex
+```
+
+Global Install
+
+```bash
+npx skills add gaelic-ghost/python-skills -g -a codex
+```
+
+For more on flags (`-a`, `-g`, etc.), see: [https://www.npmjs.com/package/skills](https://www.npmjs.com/package/skills)
+
 Curated Codex skills for Python development workflows, focused on:
 
 - `uv` project/workspace management
@@ -17,17 +33,6 @@ Curated Codex skills for Python development workflows, focused on:
   - Scaffold Python projects and workspaces with `uv` defaults.
 - `uv-pytest-unit-testing`
   - Set up and run pytest for `uv` projects and workspaces.
-
-## Install
-
-Use the Vercel skills CLI to install from this repository.
-
-Example:
-
-```bash
-# replace with the command form used by your installed CLI version
-vercel skills install galew/python-skills
-```
 
 ## License
 
