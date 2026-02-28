@@ -76,6 +76,76 @@ uv run fastapi run app/main.py
 - Members: `core-lib,api-service`
 - Profiles: first member `package`, remaining members `service`
 
+## Automation Suitability
+
+- Codex App automation: Medium. Useful for recurring FastAPI scaffold smoke checks and regression checks.
+- Codex CLI automation: High. Strong fit for CI or scheduled scaffolder reliability checks.
+
+## Codex App Automation Prompt Template
+
+```markdown
+Use $bootstrap-python-service.
+
+Scope boundaries:
+- Work only inside <REPO_PATH>.
+- Create or validate scaffold output only in <TARGET_PATH>.
+- Limit activity to scaffolding and verification; no unrelated refactors.
+
+Task:
+1. If <MODE:PROJECT|WORKSPACE> is PROJECT, run:
+   `scripts/init_python_service.sh --name <SERVICE_NAME> --mode project --path <TARGET_PATH> --python <PYTHON_VERSION> <FORCE_FLAG> <GIT_INIT_MODE>`
+2. If <MODE:PROJECT|WORKSPACE> is WORKSPACE, run:
+   `scripts/init_python_service.sh --name <SERVICE_NAME> --mode workspace --path <TARGET_PATH> --python <PYTHON_VERSION> --members "<MEMBERS_CSV>" --profile-map "<PROFILE_MAP>" <FORCE_FLAG> <GIT_INIT_MODE>`
+3. Validate generated checks:
+   - `uv run pytest`
+   - `uv run ruff check .`
+   - `uv run mypy .`
+4. If mode is PROJECT, also validate generated run commands:
+   - `uv run fastapi dev app/main.py`
+   - `uv run fastapi run app/main.py`
+
+Output contract:
+1. STATUS: PASS or FAIL
+2. GENERATED_PATH: final output path
+3. COMMANDS: exact commands executed
+4. RESULTS: concise check outputs
+5. If FAIL: short root-cause summary and minimal remediation steps
+```
+
+## Codex CLI Automation Prompt Template
+
+```bash
+codex exec --full-auto --sandbox workspace-write --cd "<REPO_PATH>" "<PROMPT_BODY>"
+```
+
+Optional machine-readable variant:
+
+```bash
+codex exec --json --full-auto --sandbox workspace-write --cd "<REPO_PATH>" "<PROMPT_BODY>"
+```
+
+`<PROMPT_BODY>` template:
+
+```markdown
+Use $bootstrap-python-service.
+Scope is scaffolding plus verification only in <TARGET_PATH> under <REPO_PATH>.
+Run the scaffold command for <MODE:PROJECT|WORKSPACE>, then run pytest, ruff, and mypy.
+If project mode, confirm FastAPI dev/run commands are valid.
+Return STATUS, generated path, exact command transcript, and minimal remediation on failure.
+```
+
+## Customization Placeholders
+
+- `<REPO_PATH>`
+- `<SERVICE_NAME>`
+- `<MODE:PROJECT|WORKSPACE>`
+- `<TARGET_PATH>`
+- `<PYTHON_VERSION>`
+- `<MEMBERS_CSV>`
+- `<PROFILE_MAP>`
+- `<FORCE_FLAG>`
+- `<GIT_INIT_MODE>`
+
 ## Resources
 
 ### scripts/

@@ -46,6 +46,67 @@ Use this skill to standardize pytest setup and execution for uv-managed Python r
 - Use `monkeypatch` for environment variables and runtime dependency replacement.
 - Register custom marks in config to avoid marker warnings.
 
+## Automation Suitability
+
+- Codex App automation: High. Strong recurring fit for test health checks, failure triage, and drift detection.
+- Codex CLI automation: High. Strong fit for non-interactive test setup and targeted test sweeps.
+
+## Codex App Automation Prompt Template
+
+```markdown
+Use $uv-pytest-unit-testing.
+
+Scope boundaries:
+- Work only inside <REPO_PATH>.
+- Operate only on pytest setup and test execution tasks.
+- Do not perform unrelated code refactors.
+
+Task:
+1. Detect repository mode from <WORKSPACE_ROOT>/pyproject.toml.
+2. If <DRY_RUN_BOOTSTRAP:TRUE|FALSE> is TRUE, run:
+   `scripts/bootstrap_pytest_uv.sh --workspace-root <WORKSPACE_ROOT> <PACKAGE_FLAG> <WITH_COV_FLAG> --dry-run`
+3. If <DRY_RUN_BOOTSTRAP:TRUE|FALSE> is FALSE, run:
+   `scripts/bootstrap_pytest_uv.sh --workspace-root <WORKSPACE_ROOT> <PACKAGE_FLAG> <WITH_COV_FLAG>`
+4. Run tests with:
+   `scripts/run_pytest_uv.sh --workspace-root <WORKSPACE_ROOT> <PACKAGE_FLAG> <TEST_PATH_FLAG> -- <PYTEST_ARGS>`
+5. Keep package-targeted runs explicit when <PACKAGE_NAME_OR_EMPTY> is set.
+
+Output contract:
+1. STATUS: PASS or FAIL
+2. SETUP: what bootstrap actions ran
+3. TEST_RESULTS: concise pass/fail summary
+4. FAILURES: grouped likely causes
+5. NEXT_STEPS: minimal remediation actions
+```
+
+## Codex CLI Automation Prompt Template
+
+```bash
+codex exec --full-auto --sandbox workspace-write --cd "<REPO_PATH>" "<PROMPT_BODY>"
+```
+
+`<PROMPT_BODY>` template:
+
+```markdown
+Use $uv-pytest-unit-testing.
+Limit scope to pytest setup and execution in <WORKSPACE_ROOT>.
+Run bootstrap in dry-run or real mode based on <DRY_RUN_BOOTSTRAP:TRUE|FALSE>.
+Run tests with explicit package targeting when <PACKAGE_NAME_OR_EMPTY> is set.
+Return STATUS, setup actions, concise test summary, grouped likely causes for failures, and minimal next steps.
+```
+
+## Customization Placeholders
+
+- `<REPO_PATH>`
+- `<WORKSPACE_ROOT>`
+- `<PACKAGE_NAME_OR_EMPTY>`
+- `<PACKAGE_FLAG>`
+- `<TEST_PATH_OR_EMPTY>`
+- `<TEST_PATH_FLAG>`
+- `<PYTEST_ARGS>`
+- `<WITH_COV_FLAG:--with-cov|EMPTY>`
+- `<DRY_RUN_BOOTSTRAP:TRUE|FALSE>`
+
 ## References
 
 - Use [`references/pytest-workflow.md`](references/pytest-workflow.md) for pytest conventions, config keys, fixtures, markers, and troubleshooting.

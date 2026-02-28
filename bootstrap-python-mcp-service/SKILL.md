@@ -105,6 +105,73 @@ Suggested queries:
 - Members: `core-lib,api-service`
 - Profiles: first member `package`, remaining members `service`
 
+## Automation Suitability
+
+- Codex App automation: Medium. Useful for recurring FastMCP scaffold checks and mapping-assessment checks.
+- Codex CLI automation: High. Strong fit for CI-style scaffold validation.
+
+## Codex App Automation Prompt Template
+
+```markdown
+Use $bootstrap-python-mcp-service.
+
+Scope boundaries:
+- Work only inside <REPO_PATH>.
+- Create or validate scaffold output only in <TARGET_PATH>.
+- Restrict work to scaffold generation, optional mapping report generation, and verification.
+
+Task:
+1. If <MODE:PROJECT|WORKSPACE> is PROJECT, run:
+   `scripts/init_fastmcp_service.sh --name <MCP_SERVICE_NAME> --mode project --path <TARGET_PATH> --python <PYTHON_VERSION> <FORCE_FLAG> <GIT_INIT_MODE>`
+2. If <MODE:PROJECT|WORKSPACE> is WORKSPACE, run:
+   `scripts/init_fastmcp_service.sh --name <MCP_SERVICE_NAME> --mode workspace --path <TARGET_PATH> --python <PYTHON_VERSION> --members "<MEMBERS_CSV>" --profile-map "<PROFILE_MAP>" <FORCE_FLAG> <GIT_INIT_MODE>`
+3. If <GENERATE_MAPPING_REPORT:TRUE|FALSE> is TRUE:
+   - If <MAPPING_INPUT_MODE:NONE|OPENAPI|FASTAPI_IMPORT> is OPENAPI, run:
+     `python3 scripts/assess_api_for_mcp.py --openapi <MAPPING_INPUT_PATH> --out <TARGET_PATH>/mcp_mapping_report.md`
+   - If <MAPPING_INPUT_MODE:NONE|OPENAPI|FASTAPI_IMPORT> is FASTAPI_IMPORT, run:
+     `python3 scripts/assess_api_for_mcp.py --fastapi <MAPPING_INPUT_PATH> --out <TARGET_PATH>/mcp_mapping_report.md`
+4. Run verification checks in <TARGET_PATH>:
+   - `uv run pytest`
+   - `uv run ruff check .`
+   - `uv run mypy .`
+
+Output contract:
+1. STATUS: PASS or FAIL
+2. COMMANDS: exact commands executed
+3. RESULTS: concise outcomes for scaffold and checks
+4. If report generated: include report path
+5. If FAIL: provide likely root cause and minimal remediation
+```
+
+## Codex CLI Automation Prompt Template
+
+```bash
+codex exec --full-auto --sandbox workspace-write --cd "<REPO_PATH>" "<PROMPT_BODY>"
+```
+
+`<PROMPT_BODY>` template:
+
+```markdown
+Use $bootstrap-python-mcp-service.
+Scope is limited to scaffold generation in <TARGET_PATH>, optional mapping report generation, and verification checks.
+Run only commands needed for this flow, then return STATUS, exact command transcript, concise results, and minimal remediation if failures occur.
+```
+
+## Customization Placeholders
+
+- `<REPO_PATH>`
+- `<MCP_SERVICE_NAME>`
+- `<MODE:PROJECT|WORKSPACE>`
+- `<TARGET_PATH>`
+- `<PYTHON_VERSION>`
+- `<MEMBERS_CSV>`
+- `<PROFILE_MAP>`
+- `<FORCE_FLAG>`
+- `<GIT_INIT_MODE>`
+- `<MAPPING_INPUT_MODE:NONE|OPENAPI|FASTAPI_IMPORT>`
+- `<MAPPING_INPUT_PATH>`
+- `<GENERATE_MAPPING_REPORT:TRUE|FALSE>`
+
 ## Resources
 
 ### scripts/

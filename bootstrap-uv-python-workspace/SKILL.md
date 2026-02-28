@@ -65,6 +65,73 @@ scripts/init_uv_python_project.sh --name my-service --profile service --initial-
 - Profiles: first member `package`, remaining members `service`
 - Local linking: services depend on the first package member using uv workspace sources.
 
+## Automation Suitability
+
+- Codex App automation: Medium. Best for scheduled scaffold health checks, not day-to-day product delivery.
+- Codex CLI automation: High. Strong fit for CI or scheduled scaffold validation.
+
+## Codex App Automation Prompt Template
+
+```markdown
+Use $bootstrap-uv-python-workspace.
+
+Scope boundaries:
+- Work only inside <REPO_PATH>.
+- Create temporary scaffolds only under <SCRATCH_ROOT>/<NAME>-<STAMP>.
+- Do not modify unrelated files outside the temporary scaffold path.
+
+Task:
+1. If <MODE:PROJECT|WORKSPACE> is PROJECT, run:
+   `scripts/init_uv_python_project.sh --name <NAME> --profile <PROFILE:PACKAGE|SERVICE> --python <PYTHON_VERSION> --path <SCRATCH_ROOT>/<NAME>-<STAMP> <FORCE_FLAG> <GIT_INIT_MODE>`
+2. If <MODE:PROJECT|WORKSPACE> is WORKSPACE, run:
+   `scripts/init_uv_python_workspace.sh --name <NAME> --python <PYTHON_VERSION> --path <SCRATCH_ROOT>/<NAME>-<STAMP> --members "<MEMBERS_CSV>" --profile-map "<PROFILE_MAP>" <FORCE_FLAG> <GIT_INIT_MODE>`
+3. Run validation checks in the scaffold root:
+   - `uv run pytest`
+   - `uv run ruff check .`
+   - `uv run mypy .`
+4. If <KEEP_OR_CLEANUP_ARTIFACTS:KEEP|CLEANUP> is CLEANUP, remove the scaffold directory after reporting results.
+
+Output contract:
+1. STATUS: PASS or FAIL
+2. COMMANDS: exact commands executed, in order
+3. RESULTS: concise check outcomes
+4. If FAIL: include a short stderr summary and minimal fix recommendation
+5. If PASS with no findings: include "safe to archive"
+```
+
+## Codex CLI Automation Prompt Template
+
+```bash
+codex exec --full-auto --sandbox workspace-write --cd "<REPO_PATH>" "<PROMPT_BODY>"
+```
+
+`<PROMPT_BODY>` template:
+
+```markdown
+Use $bootstrap-uv-python-workspace.
+Stay strictly within <REPO_PATH>. Create temporary artifacts only under <SCRATCH_ROOT>/<NAME>-<STAMP>.
+Run scaffold generation for <MODE:PROJECT|WORKSPACE>, then run:
+- `uv run pytest`
+- `uv run ruff check .`
+- `uv run mypy .`
+Return STATUS, exact commands, and concise results only. If failures occur, provide only the minimal remediation needed.
+```
+
+## Customization Placeholders
+
+- `<REPO_PATH>`
+- `<SCRATCH_ROOT>`
+- `<NAME>`
+- `<STAMP>`
+- `<MODE:PROJECT|WORKSPACE>`
+- `<PROFILE:PACKAGE|SERVICE>`
+- `<MEMBERS_CSV>`
+- `<PROFILE_MAP>`
+- `<PYTHON_VERSION>`
+- `<FORCE_FLAG>`
+- `<GIT_INIT_MODE>`
+- `<KEEP_OR_CLEANUP_ARTIFACTS:KEEP|CLEANUP>`
+
 ## References
 
 Use [references/uv-command-recipes.md](references/uv-command-recipes.md) for concise uv command patterns.
