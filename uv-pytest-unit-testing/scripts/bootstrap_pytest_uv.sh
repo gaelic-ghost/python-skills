@@ -6,16 +6,31 @@ PACKAGE_NAME=""
 WITH_COV=0
 DRY_RUN=0
 
+SKILL_NAME="uv-pytest-unit-testing"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+GLOBAL_PROFILE="$HOME/.config/gaelic-ghost/python-skills/$SKILL_NAME/customization.yaml"
+REPO_PROFILE="$REPO_ROOT/.codex/profiles/$SKILL_NAME/customization.yaml"
+
+CONFIG_PATH=""
+BYPASS_ALL_PROFILES=0
+BYPASS_REPO_PROFILE=0
+DELETE_REPO_PROFILE=0
+
 usage() {
   cat <<'USAGE'
-Usage: bootstrap_pytest_uv.sh [--workspace-root PATH] [--package NAME] [--with-cov] [--dry-run]
+Usage: bootstrap_pytest_uv.sh [--workspace-root PATH] [--package NAME] [--with-cov] [--dry-run] [--config PATH]
 
 Options:
-  --workspace-root PATH  Repository root containing pyproject.toml (default: cwd)
-  --package NAME         Workspace member package name for package-scoped install
-  --with-cov             Also install pytest-cov and add coverage defaults when creating config
-  --dry-run              Print planned commands and file changes without mutating files
-  -h, --help             Show this help
+  --workspace-root PATH      Repository root containing pyproject.toml (default: cwd)
+  --package NAME             Workspace member package name for package-scoped install
+  --with-cov                 Also install pytest-cov and add coverage defaults when creating config
+  --dry-run                  Print planned commands and file changes without mutating files
+  --config PATH              Explicit YAML config path
+  --bypassing-all-profiles   Ignore global and repo profile files for this run
+  --bypassing-repo-profile   Ignore repo-local profile file for this run
+  --deleting-repo-profile    Delete repo-local profile file before execution
+  -h, --help                 Show this help
 USAGE
 }
 
@@ -24,6 +39,80 @@ require_cmd() {
     echo "error: required command not found: $1" >&2
     exit 1
   fi
+}
+
+fail() {
+  echo "error: $*" >&2
+  exit 1
+}
+
+trim() {
+  local value="$1"
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+  printf '%s' "$value"
+}
+
+strip_quotes() {
+  local value="$1"
+  if [[ "$value" == \"*\" && "$value" == *\" ]]; then
+    value="${value:1:${#value}-2}"
+  elif [[ "$value" == \'*\' && "$value" == *\' ]]; then
+    value="${value:1:${#value}-2}"
+  fi
+  printf '%s' "$value"
+}
+
+bool_to_int() {
+  local value
+  value="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+  case "$value" in
+    1|true|yes|on) printf '1\n' ;;
+    0|false|no|off) printf '0\n' ;;
+    *) fail "invalid boolean value '$1'" ;;
+  esac
+}
+
+apply_config_value() {
+  local key="$1"
+  local value="$2"
+
+  case "$key" in
+    workspace_root) WORKSPACE_ROOT="$value" ;;
+    package) PACKAGE_NAME="$value" ;;
+    with_cov) WITH_COV="$(bool_to_int "$value")" ;;
+    dry_run) DRY_RUN="$(bool_to_int "$value")" ;;
+    *) fail "unknown config key '$key'" ;;
+  esac
+}
+
+load_config_file() {
+  local path="$1"
+  local required="$2"
+
+  if [[ ! -f "$path" ]]; then
+    [[ "$required" -eq 1 ]] && fail "config file not found: $path"
+    return 0
+  fi
+
+  local line
+  local lineno=0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    lineno=$((lineno + 1))
+    line="$(trim "$line")"
+    [[ -z "$line" || "$line" == \#* ]] && continue
+    [[ "$line" == *:* ]] || fail "invalid config line at $path:$lineno"
+
+    local key="${line%%:*}"
+    local value="${line#*:}"
+    key="$(trim "$key")"
+    value="${value%%#*}"
+    value="$(trim "$value")"
+    value="$(strip_quotes "$value")"
+
+    [[ -n "$key" ]] || fail "empty config key at $path:$lineno"
+    apply_config_value "$key" "$value"
+  done < "$path"
 }
 
 run_cmd() {
@@ -63,6 +152,62 @@ EOF_CFG
   echo "info: added [tool.pytest.ini_options] to $pyproject_path"
 }
 
+ORIGINAL_ARGS=("$@")
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --config)
+      CONFIG_PATH="${2:-}"
+      [[ -n "$CONFIG_PATH" ]] || fail "--config requires a value"
+      shift 2
+      ;;
+    --bypassing-all-profiles)
+      BYPASS_ALL_PROFILES=1
+      shift
+      ;;
+    --bypassing-repo-profile)
+      BYPASS_REPO_PROFILE=1
+      shift
+      ;;
+    --deleting-repo-profile)
+      DELETE_REPO_PROFILE=1
+      shift
+      ;;
+    --workspace-root|--package)
+      [[ $# -ge 2 ]] || fail "$1 requires a value"
+      shift 2
+      ;;
+    --with-cov|--dry-run)
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "error: unknown argument: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [[ "$DELETE_REPO_PROFILE" -eq 1 ]]; then
+  rm -f "$REPO_PROFILE"
+fi
+
+if [[ "$BYPASS_ALL_PROFILES" -eq 0 ]]; then
+  load_config_file "$GLOBAL_PROFILE" 0
+  if [[ "$BYPASS_REPO_PROFILE" -eq 0 ]]; then
+    load_config_file "$REPO_PROFILE" 0
+  fi
+fi
+
+if [[ -n "$CONFIG_PATH" ]]; then
+  load_config_file "$CONFIG_PATH" 1
+fi
+
+set -- "${ORIGINAL_ARGS[@]}"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --workspace-root)
@@ -79,6 +224,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     --dry-run)
       DRY_RUN=1
+      shift
+      ;;
+    --config)
+      shift 2
+      ;;
+    --bypassing-all-profiles|--bypassing-repo-profile|--deleting-repo-profile)
       shift
       ;;
     -h|--help)
