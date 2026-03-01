@@ -1,6 +1,6 @@
 # python-skills
 
-Curated Codex skills for Python development with `uv`-first workflows and practical automation templates.
+Codex "Agent Skills" for Python development with `uv`-first workflows and practical automation templates.
 
 ## What These Agent Skills Help With
 
@@ -24,24 +24,21 @@ This repository supports Python users who want consistent project setup, testing
 ## Quick Start (Vercel Skills CLI)
 
 ```bash
+# Repo-local
 npx skills add gaelic-ghost/python-skills
-```
-
-```bash
-npx skills add gaelic-ghost/python-skills -a codex
-```
-
-```bash
-npx skills add gaelic-ghost/python-skills -a codex -g
 ```
 
 ## Install individually by Skill
 
 ```bash
-npx skills add gaelic-ghost/python-skills@bootstrap-python-mcp-service -a codex
-npx skills add gaelic-ghost/python-skills@bootstrap-python-service -a codex
-npx skills add gaelic-ghost/python-skills@bootstrap-uv-python-workspace -a codex
-npx skills add gaelic-ghost/python-skills@uv-pytest-unit-testing -a codex
+# Bootstrap FastAPI
+npx skills add gaelic-ghost/python-skills@bootstrap-python-service
+# Bootstrap FastMCP
+npx skills add gaelic-ghost/python-skills@bootstrap-python-mcp-service
+# Bootstrap uv project or workspace
+npx skills add gaelic-ghost/python-skills@bootstrap-uv-python-workspace
+# Implement and use pytest in a uv project or workspace
+npx skills add gaelic-ghost/python-skills@uv-pytest-unit-testing
 ```
 
 ## Find Skills like these with the `skills` CLI by Vercel — [vercel-labs/skills](https://github.com/vercel-labs/skills)
@@ -50,14 +47,13 @@ npx skills add gaelic-ghost/python-skills@uv-pytest-unit-testing -a codex
 npx skills find "python uv codex"
 npx skills find "fastapi bootstrap"
 npx skills find "pytest uv workflow"
+npx skills find "mcp service bootstrap"
 ```
 
 ## Find Skills like these with `Find Skills` by Vercel — [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills)
 
 ```bash
-npx skills add vercel-labs/agent-skills -a codex
-npx skills find "python workspace skill"
-npx skills find "mcp service bootstrap"
+npx skills add vercel-labs/agent-skills
 ```
 
 - Skills catalog: [skills.sh](https://skills.sh/)
@@ -76,10 +72,10 @@ npx skills find "mcp service bootstrap"
 
 ## Notes
 
-- All workflows in this repo assume `uv` as the default Python tooling path.
-- Each skill includes automation template guidance suitable for Codex App and Codex CLI execution.
+- All workflows in this repo assume `uv` for Python tooling.
+- Each skill includes automation template guidance suitable for Codex GUI App Automations and Codex CLI `exec` executions.
 
-## Search Keywords
+## Keywords
 
 Python skills, uv, FastAPI, FastMCP, pytest, workspace bootstrap, Codex automation.
 
