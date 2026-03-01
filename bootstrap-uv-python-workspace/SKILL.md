@@ -1,6 +1,6 @@
 ---
 name: bootstrap-uv-python-workspace
-description: Bootstrap new Python projects and multi-package workspaces with uv on macOS using deterministic scripts and consistent defaults. Use when creating a new uv Python project, scaffolding a uv monorepo/workspace, setting up package or service profiles, initializing dev tooling (pytest, ruff, mypy), creating README scaffolds, or initializing git with an optional first commit.
+description: Bootstrap new Python projects and multi-package workspaces with uv on macOS using deterministic scripts and consistent defaults. Use when creating a new uv Python project, scaffolding a uv monorepo/workspace, setting up package or service profiles, customizing scaffold defaults through layered YAML profiles, initializing dev tooling (pytest, ruff, mypy), creating README scaffolds, or initializing git with an optional first commit.
 ---
 
 # Bootstrap UV Python Workspace
@@ -131,6 +131,28 @@ Return STATUS, exact commands, and concise results only. If failures occur, prov
 - `<FORCE_FLAG>`
 - `<GIT_INIT_MODE>`
 - `<KEEP_OR_CLEANUP_ARTIFACTS:KEEP|CLEANUP>`
+
+## Interactive Customization Workflow
+
+1. Ask whether users want project or workspace script execution.
+2. Gather name, path, Python version, and git/force flags.
+3. If project script, gather profile (`package` or `service`).
+4. If workspace script, gather members and optional profile map.
+5. Return both:
+- A YAML profile for durable reuse.
+- The exact scaffold command to run.
+6. Use this precedence order:
+- CLI flags
+- `--config` profile file
+- `.codex/profiles/bootstrap-uv-python-workspace/customization.yaml`
+- `~/.config/gaelic-ghost/python-skills/bootstrap-uv-python-workspace/customization.yaml`
+- Script defaults
+7. If users want temporary reset behavior:
+- `--bypassing-all-profiles`
+- `--bypassing-repo-profile`
+- `--deleting-repo-profile`
+8. If users provide no customization or profile files, keep existing script defaults unchanged.
+9. See [`references/interactive-customization.md`](references/interactive-customization.md) for schema and examples.
 
 ## References
 

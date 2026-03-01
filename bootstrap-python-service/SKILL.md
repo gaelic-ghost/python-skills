@@ -1,6 +1,6 @@
 ---
 name: bootstrap-python-service
-description: Bootstrap Python FastAPI services on macOS using uv with consistent project and workspace scaffolds. Use when creating a new backend/API service from scratch, scaffolding a single uv service project, scaffolding a uv workspace with package/service members, initializing pytest+ruff+mypy defaults, creating README.md, initializing git, and running initial validation commands.
+description: Bootstrap Python FastAPI services on macOS using uv with consistent project and workspace scaffolds. Use when creating a new backend/API service from scratch, scaffolding a single uv service project, scaffolding a uv workspace with package/service members, customizing scaffold defaults through layered YAML profiles, initializing pytest+ruff+mypy defaults, creating README.md, initializing git, and running initial validation commands.
 ---
 
 # Bootstrap Python Service
@@ -145,6 +145,26 @@ Return STATUS, generated path, exact command transcript, and minimal remediation
 - `<PROFILE_MAP>`
 - `<FORCE_FLAG>`
 - `<GIT_INIT_MODE>`
+
+## Interactive Customization Workflow
+
+1. Ask for mode, name, path, Python version, and git/force flags.
+2. If workspace mode, also ask for members and profile map.
+3. Return both:
+- A YAML profile for durable reuse.
+- The exact scaffold command to run.
+4. Use this precedence order:
+- CLI flags
+- `--config` profile file
+- `.codex/profiles/bootstrap-python-service/customization.yaml`
+- `~/.config/gaelic-ghost/python-skills/bootstrap-python-service/customization.yaml`
+- Script defaults
+5. If users want temporary reset behavior:
+- `--bypassing-all-profiles`
+- `--bypassing-repo-profile`
+- `--deleting-repo-profile`
+6. If users provide no customization or profile files, keep existing script defaults unchanged.
+7. See [`references/interactive-customization.md`](references/interactive-customization.md) for schema and examples.
 
 ## Resources
 

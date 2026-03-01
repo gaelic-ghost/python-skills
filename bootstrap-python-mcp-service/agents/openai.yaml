@@ -1,7 +1,7 @@
 interface:
   display_name: "Bootstrap Python MCP Service"
   short_description: "Scaffold uv FastMCP projects and workspaces"
-  default_prompt: "Use $bootstrap-python-mcp-service to scaffold a uv FastMCP project or workspace with pytest, ruff, and mypy defaults, optional git init, and MCP mapping guidance."
+  default_prompt: "Use $bootstrap-python-mcp-service to scaffold a uv FastMCP project or workspace, optionally applying layered customization profiles before running scaffold checks."
 
 dependencies:
   tools:

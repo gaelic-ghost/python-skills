@@ -14,6 +14,10 @@ Options:
   --members "a,b,c"             Workspace members (workspace mode only)
   --profile-map "a=package,b=service"
                                 Workspace profile assignments (workspace mode only)
+  --config <path>               Explicit YAML config path
+  --bypassing-all-profiles      Ignore global and repo profile files for this run
+  --bypassing-repo-profile      Ignore repo-local profile file for this run
+  --deleting-repo-profile       Delete repo-local profile file before execution
   --force                       Allow non-empty target directory
   --initial-commit              Create an initial git commit after scaffold
   --no-git-init                 Skip git initialization
@@ -30,6 +34,80 @@ require_cmd() {
   command -v "$1" >/dev/null 2>&1 || fail "required command not found: $1"
 }
 
+trim() {
+  local value="$1"
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+  printf '%s' "$value"
+}
+
+strip_quotes() {
+  local value="$1"
+  if [[ "$value" == \"*\" && "$value" == *\" ]]; then
+    value="${value:1:${#value}-2}"
+  elif [[ "$value" == \'*\' && "$value" == *\' ]]; then
+    value="${value:1:${#value}-2}"
+  fi
+  printf '%s' "$value"
+}
+
+bool_to_int() {
+  local value
+  value="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+  case "$value" in
+    1|true|yes|on) printf '1\n' ;;
+    0|false|no|off) printf '0\n' ;;
+    *) fail "invalid boolean value '$1'" ;;
+  esac
+}
+
+apply_config_value() {
+  local key="$1"
+  local value="$2"
+
+  case "$key" in
+    name) NAME="$value" ;;
+    mode) MODE="$value" ;;
+    path) TARGET_PATH="$value" ;;
+    python) PYTHON_VERSION="$value" ;;
+    members) MEMBERS="$value" ;;
+    profile_map) PROFILE_MAP="$value" ;;
+    force) FORCE="$(bool_to_int "$value")" ;;
+    initial_commit) INITIAL_COMMIT="$(bool_to_int "$value")" ;;
+    no_git_init) NO_GIT_INIT="$(bool_to_int "$value")" ;;
+    *) fail "unknown config key '$key'" ;;
+  esac
+}
+
+load_config_file() {
+  local path="$1"
+  local required="$2"
+
+  if [[ ! -f "$path" ]]; then
+    [[ "$required" -eq 1 ]] && fail "config file not found: $path"
+    return 0
+  fi
+
+  local line
+  local lineno=0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    lineno=$((lineno + 1))
+    line="$(trim "$line")"
+    [[ -z "$line" || "$line" == \#* ]] && continue
+    [[ "$line" == *:* ]] || fail "invalid config line at $path:$lineno"
+
+    local key="${line%%:*}"
+    local value="${line#*:}"
+    key="$(trim "$key")"
+    value="${value%%#*}"
+    value="$(trim "$value")"
+    value="$(strip_quotes "$value")"
+
+    [[ -n "$key" ]] || fail "empty config key at $path:$lineno"
+    apply_config_value "$key" "$value"
+  done < "$path"
+}
+
 NAME=""
 MODE="project"
 TARGET_PATH=""
@@ -40,6 +118,71 @@ FORCE=0
 INITIAL_COMMIT=0
 NO_GIT_INIT=0
 
+SKILL_NAME="bootstrap-python-service"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+GLOBAL_PROFILE="$HOME/.config/gaelic-ghost/python-skills/$SKILL_NAME/customization.yaml"
+REPO_PROFILE="$REPO_ROOT/.codex/profiles/$SKILL_NAME/customization.yaml"
+
+CONFIG_PATH=""
+BYPASS_ALL_PROFILES=0
+BYPASS_REPO_PROFILE=0
+DELETE_REPO_PROFILE=0
+
+ORIGINAL_ARGS=("$@")
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --config)
+      CONFIG_PATH="${2:-}"
+      [[ -n "$CONFIG_PATH" ]] || fail "--config requires a value"
+      shift 2
+      ;;
+    --bypassing-all-profiles)
+      BYPASS_ALL_PROFILES=1
+      shift
+      ;;
+    --bypassing-repo-profile)
+      BYPASS_REPO_PROFILE=1
+      shift
+      ;;
+    --deleting-repo-profile)
+      DELETE_REPO_PROFILE=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --name|--mode|--path|--python|--members|--profile-map)
+      [[ $# -ge 2 ]] || fail "$1 requires a value"
+      shift 2
+      ;;
+    --force|--initial-commit|--no-git-init)
+      shift
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
+if [[ "$DELETE_REPO_PROFILE" -eq 1 ]]; then
+  rm -f "$REPO_PROFILE"
+fi
+
+if [[ "$BYPASS_ALL_PROFILES" -eq 0 ]]; then
+  load_config_file "$GLOBAL_PROFILE" 0
+  if [[ "$BYPASS_REPO_PROFILE" -eq 0 ]]; then
+    load_config_file "$REPO_PROFILE" 0
+  fi
+fi
+
+if [[ -n "$CONFIG_PATH" ]]; then
+  load_config_file "$CONFIG_PATH" 1
+fi
+
+set -- "${ORIGINAL_ARGS[@]}"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --name)
@@ -78,6 +221,12 @@ while [[ $# -gt 0 ]]; do
       NO_GIT_INIT=1
       shift
       ;;
+    --config)
+      shift 2
+      ;;
+    --bypassing-all-profiles|--bypassing-repo-profile|--deleting-repo-profile)
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -99,7 +248,6 @@ if [[ -z "$TARGET_PATH" ]]; then
   TARGET_PATH="./$NAME"
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SHARED_PROJECT_SCRIPT="$SCRIPT_DIR/../../bootstrap-uv-python-workspace/scripts/init_uv_python_project.sh"
 SHARED_WORKSPACE_SCRIPT="$SCRIPT_DIR/../../bootstrap-uv-python-workspace/scripts/init_uv_python_workspace.sh"
 
@@ -121,6 +269,7 @@ if [[ "$MODE" == "project" ]]; then
     --profile service
     --path "$TARGET_PATH"
     --python "$PYTHON_VERSION"
+    --bypassing-all-profiles
   )
 
   [[ "$FORCE" -eq 1 ]] && cmd+=(--force)
@@ -141,6 +290,7 @@ cmd=(
   --name "$NAME"
   --path "$TARGET_PATH"
   --python "$PYTHON_VERSION"
+  --bypassing-all-profiles
 )
 
 [[ -n "$MEMBERS" ]] && cmd+=(--members "$MEMBERS")
