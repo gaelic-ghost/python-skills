@@ -1,4 +1,4 @@
 interface:
   display_name: "Bootstrap Python Service"
   short_description: "Scaffold uv FastAPI projects and workspaces"
-  default_prompt: "Use $bootstrap-python-service to scaffold a uv FastAPI service project or workspace with pytest, ruff, and mypy defaults, optional git init, and clear run/check commands."
+  default_prompt: "Use $bootstrap-python-service to scaffold a uv FastAPI service project or workspace, optionally applying layered customization profiles before running checks."

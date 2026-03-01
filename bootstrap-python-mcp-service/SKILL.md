@@ -1,6 +1,6 @@
 ---
 name: bootstrap-python-mcp-service
-description: Bootstrap Python MCP server projects and workspaces on macOS using uv and FastMCP with consistent defaults. Use when creating a new MCP server from scratch, scaffolding a single uv MCP project, scaffolding a uv workspace with package/service members, initializing pytest+ruff+mypy defaults, creating README.md, initializing git, running initial validation checks, or starting from OpenAPI/FastAPI with MCP mapping guidance.
+description: Bootstrap Python MCP server projects and workspaces on macOS using uv and FastMCP with consistent defaults. Use when creating a new MCP server from scratch, scaffolding a single uv MCP project, scaffolding a uv workspace with package/service members, customizing scaffold defaults through layered YAML profiles, initializing pytest+ruff+mypy defaults, creating README.md, initializing git, running initial validation checks, or starting from OpenAPI/FastAPI with MCP mapping guidance.
 ---
 
 # Bootstrap Python MCP Service
@@ -171,6 +171,26 @@ Run only commands needed for this flow, then return STATUS, exact command transc
 - `<MAPPING_INPUT_MODE:NONE|OPENAPI|FASTAPI_IMPORT>`
 - `<MAPPING_INPUT_PATH>`
 - `<GENERATE_MAPPING_REPORT:TRUE|FALSE>`
+
+## Interactive Customization Workflow
+
+1. Ask for mode, name, path, Python version, and git/force flags.
+2. If workspace mode, also ask for members and profile map.
+3. Return both:
+- A YAML profile for durable reuse.
+- The exact scaffold command to run.
+4. Use this precedence order:
+- CLI flags
+- `--config` profile file
+- `.codex/profiles/bootstrap-python-mcp-service/customization.yaml`
+- `~/.config/gaelic-ghost/python-skills/bootstrap-python-mcp-service/customization.yaml`
+- Script defaults
+5. If users want temporary reset behavior:
+- `--bypassing-all-profiles`
+- `--bypassing-repo-profile`
+- `--deleting-repo-profile`
+6. If users provide no customization or profile files, keep existing script defaults unchanged.
+7. See [`references/interactive-customization.md`](references/interactive-customization.md) for schema and examples.
 
 ## Resources
 

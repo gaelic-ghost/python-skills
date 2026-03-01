@@ -1,6 +1,6 @@
 ---
 name: uv-pytest-unit-testing
-description: Set up and run unit tests for Python uv projects and uv workspaces with pytest. Use when creating or updating pytest configuration in pyproject.toml, installing pytest dev dependencies with uv, running tests in a workspace member package via `uv run --package`, organizing tests with fixtures/markers/parametrize, or troubleshooting test discovery and import failures.
+description: Set up and run unit tests for Python uv projects and uv workspaces with pytest. Use when creating or updating pytest configuration in pyproject.toml, installing pytest dev dependencies with uv, running tests in a workspace member package via `uv run --package`, customizing pytest workflow defaults through layered YAML profiles, organizing tests with fixtures/markers/parametrize, or troubleshooting test discovery and import failures.
 ---
 
 # Uv Pytest Unit Testing
@@ -106,6 +106,28 @@ Return STATUS, setup actions, concise test summary, grouped likely causes for fa
 - `<PYTEST_ARGS>`
 - `<WITH_COV_FLAG:--with-cov|EMPTY>`
 - `<DRY_RUN_BOOTSTRAP:TRUE|FALSE>`
+
+## Interactive Customization Workflow
+
+1. Ask whether users want bootstrap mode or run mode.
+2. Gather workspace root and optional package target.
+3. For bootstrap mode, gather `with_cov` and `dry_run`.
+4. For run mode, gather optional test path and optional pytest args.
+5. Return both:
+- A YAML profile for durable reuse.
+- The exact command to run.
+6. Use this precedence order:
+- CLI flags
+- `--config` profile file
+- `.codex/profiles/uv-pytest-unit-testing/customization.yaml`
+- `~/.config/gaelic-ghost/python-skills/uv-pytest-unit-testing/customization.yaml`
+- Script defaults
+7. If users want temporary reset behavior:
+- `--bypassing-all-profiles`
+- `--bypassing-repo-profile`
+- `--deleting-repo-profile`
+8. If users provide no customization or profile files, keep existing script defaults unchanged.
+9. See [`references/interactive-customization.md`](references/interactive-customization.md) for schema and examples.
 
 ## References
 
