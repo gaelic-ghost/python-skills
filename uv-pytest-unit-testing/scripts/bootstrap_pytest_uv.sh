@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
+emulate -L zsh
 set -euo pipefail
 
 WORKSPACE_ROOT="$(pwd)"
@@ -260,7 +261,7 @@ fi
 
 cd "$WORKSPACE_ROOT"
 
-declare -a deps
+typeset -a deps
 if [[ "$WITH_COV" -eq 1 ]]; then
   deps=(pytest pytest-cov)
 else

@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
+emulate -L zsh
 set -euo pipefail
 
 usage() {
@@ -198,7 +199,7 @@ profile_for_member() {
 
   local old_ifs="$IFS"
   IFS=','
-  for entry in $map; do
+  for entry in ${(s:,:)map}; do
     local key="${entry%%=*}"
     local value="${entry#*=}"
     if [ "$key" = "$member" ]; then
@@ -222,7 +223,7 @@ INITIAL_COMMIT=0
 GIT_INIT=1
 
 SKILL_NAME="bootstrap-uv-python-workspace"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="${0:A:h}"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 GLOBAL_PROFILE="$HOME/.config/gaelic-ghost/python-skills/$SKILL_NAME/customization.yaml"
 REPO_PROFILE="$REPO_ROOT/.codex/profiles/$SKILL_NAME/customization.yaml"
@@ -346,7 +347,7 @@ SERVICE_MEMBERS=()
 
 old_ifs="$IFS"
 IFS=','
-for raw in $MEMBERS_CSV; do
+for raw in ${(s:,:)MEMBERS_CSV}; do
   member="$(printf '%s' "$raw" | xargs)"
   [ -n "$member" ] || continue
   MEMBERS+=("$member")
@@ -355,10 +356,10 @@ IFS="$old_ifs"
 
 [ "${#MEMBERS[@]}" -gt 0 ] || fail "No valid members provided"
 
-for idx in "${!MEMBERS[@]}"; do
-  member="${MEMBERS[$idx]}"
+idx=1
+for member in "${MEMBERS[@]}"; do
   default_profile="service"
-  if [ "$idx" -eq 0 ]; then
+  if [ "$idx" -eq 1 ]; then
     default_profile="package"
   fi
 
@@ -416,6 +417,7 @@ def test_package_import() -> None:
     assert imported_name == "${module_name}"
 PY
   fi
+  idx=$((idx + 1))
 done
 
 if [ "${#PACKAGE_MEMBERS[@]}" -gt 0 ] && [ "${#SERVICE_MEMBERS[@]}" -gt 0 ]; then

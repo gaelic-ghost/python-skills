@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
+emulate -L zsh
 set -euo pipefail
 
 usage() {
@@ -134,7 +135,7 @@ profile_for_member() {
 
   local old_ifs="$IFS"
   IFS=','
-  for entry in $map; do
+  for entry in ${(s:,:)map}; do
     local key="${entry%%=*}"
     local value="${entry#*=}"
     if [[ "$key" == "$member" ]]; then
@@ -441,12 +442,12 @@ if [[ -z "$members_csv" ]]; then
   members_csv="core-lib,api-service"
 fi
 
-declare -a WORKSPACE_MEMBERS=()
-declare -a SERVICE_MEMBERS=()
+typeset -a WORKSPACE_MEMBERS=()
+typeset -a SERVICE_MEMBERS=()
 
 old_ifs="$IFS"
 IFS=','
-for raw in $members_csv; do
+for raw in ${(s:,:)members_csv}; do
   member="$(printf '%s' "$raw" | xargs)"
   [[ -n "$member" ]] || continue
   WORKSPACE_MEMBERS+=("$member")
@@ -455,10 +456,10 @@ IFS="$old_ifs"
 
 [[ "${#WORKSPACE_MEMBERS[@]}" -gt 0 ]] || fail "no valid members provided"
 
-for idx in "${!WORKSPACE_MEMBERS[@]}"; do
-  member="${WORKSPACE_MEMBERS[$idx]}"
+idx=1
+for member in "${WORKSPACE_MEMBERS[@]}"; do
   default_profile="service"
-  if [[ "$idx" -eq 0 ]]; then
+  if [[ "$idx" -eq 1 ]]; then
     default_profile="package"
   fi
 
@@ -468,6 +469,7 @@ for idx in "${!WORKSPACE_MEMBERS[@]}"; do
   if [[ "$profile" == "service" ]]; then
     SERVICE_MEMBERS+=("$member")
   fi
+  idx=$((idx + 1))
 done
 
 [[ "${#SERVICE_MEMBERS[@]}" -gt 0 ]] || fail "workspace mode requires at least one service profile member"

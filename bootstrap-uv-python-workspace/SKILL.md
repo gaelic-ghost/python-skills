@@ -5,20 +5,31 @@ description: Bootstrap new Python projects and multi-package workspaces with uv 
 
 # Bootstrap UV Python Workspace
 
-Create repeatable uv-based scaffolds for both single projects and workspaces.
-Use this skill as the shared scaffolding basis for other Python bootstrap skills that need consistent uv project/workspace defaults.
+## Purpose
 
-## Workflow
+Create repeatable `uv`-based scaffolds for both single projects and workspaces.
+Use this skill as the shared scaffolding basis for other Python bootstrap skills that need consistent `uv` project and workspace defaults.
 
-1. Choose bootstrap mode:
-- Single project: `scripts/init_uv_python_project.sh`
-- Workspace: `scripts/init_uv_python_workspace.sh`
-2. Select profile(s):
-- `package`: library/package layout
-- `service`: FastAPI service layout
-3. Run scaffold script with explicit `--name` and optional `--path`, `--python`, and `--initial-commit`.
-4. Verify generated environment with built-in checks run by the scripts.
-5. Return exact next commands to run locally.
+## When To Use
+
+- Use this skill for generic `uv` project or workspace creation.
+- Use this skill when the user needs package or service scaffolding without the higher-level FastAPI or FastMCP overlays.
+- Expect downstream higher-level Python bootstrap skills to delegate here rather than duplicate its defaults.
+
+## Primary Workflow
+
+1. Choose the canonical entrypoint:
+   - single project: `scripts/init_uv_python_project.sh`
+   - workspace: `scripts/init_uv_python_workspace.sh`
+2. Select the profile or profile map:
+   - `package`
+   - `service`
+3. Run the selected script with explicit `--name` and optional `--path`, `--python`, `--force`, `--initial-commit`, and `--no-git-init`.
+4. Accept the built-in validation path:
+   - `uv run pytest`
+   - `uv run ruff check .`
+   - `uv run mypy .`
+5. Return the generated path plus the exact next-step commands emitted by the script.
 
 ## Commands
 
@@ -48,13 +59,6 @@ scripts/init_uv_python_workspace.sh --name platform --no-git-init
 scripts/init_uv_python_project.sh --name my-service --profile service --initial-commit
 ```
 
-## Guardrails
-
-- Refuse non-empty target directories unless `--force` is set.
-- Refuse to overwrite an existing `pyproject.toml`.
-- Require `uv` and `git` (when git initialization is enabled).
-- Exit non-zero with actionable error text for invalid arguments or missing prerequisites.
-
 ## Defaults
 
 - Python version: `3.13` (override with `--python`).
@@ -64,6 +68,32 @@ scripts/init_uv_python_project.sh --name my-service --profile service --initial-
 - Members: `core-lib,api-service`
 - Profiles: first member `package`, remaining members `service`
 - Local linking: services depend on the first package member using uv workspace sources.
+
+## Outputs
+
+- `status`
+  - `success`: scaffold and built-in validation completed
+  - `blocked`: prerequisites or target-directory constraints prevented the run
+  - `failed`: the script started but validation or generation failed
+- `path_type`
+  - `primary`: one of the two canonical shell entrypoints completed
+- `output`
+  - resolved project or workspace path
+  - emitted validation commands
+  - generated run examples
+
+## Guardrails
+
+- Refuse non-empty target directories unless `--force` is set.
+- Refuse to overwrite an existing `pyproject.toml`.
+- Require `uv` and `git` when git initialization is enabled.
+- Exit non-zero with actionable error text for invalid arguments or missing prerequisites.
+
+## Fallbacks and Handoffs
+
+- Preferred paths are `scripts/init_uv_python_project.sh` and `scripts/init_uv_python_workspace.sh`.
+- Recommend `bootstrap-python-service` when the user wants FastAPI-first scaffolding.
+- Recommend `bootstrap-python-mcp-service` when the user wants FastMCP-first scaffolding.
 
 ## Automation Suitability
 
@@ -156,19 +186,14 @@ Return STATUS, exact commands, and concise results only. If failures occur, prov
 
 ## References
 
-Use [references/uv-command-recipes.md](references/uv-command-recipes.md) for concise uv command patterns.
+- `references/uv-command-recipes.md`
+- `references/customization.md`
 
-## Resources
+## Script Inventory
 
-### scripts/
+- `scripts/init_uv_python_project.sh`
+- `scripts/init_uv_python_workspace.sh`
 
-- `init_uv_python_project.sh`: bootstrap a single uv project (`package` or `service`).
-- `init_uv_python_workspace.sh`: bootstrap a uv workspace with multiple members.
+## Assets
 
-### references/
-
-- `uv-command-recipes.md`: short recipes for init/add/run/sync/workspace operations.
-
-### assets/
-
-- `README.md.tmpl`: shared template consumed by both scripts.
+- `assets/README.md.tmpl`

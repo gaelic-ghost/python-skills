@@ -5,38 +5,34 @@ description: Set up and run unit tests for Python uv projects and uv workspaces 
 
 # Uv Pytest Unit Testing
 
-## Overview
+## Purpose
 
 Use this skill to standardize pytest setup and execution for uv-managed Python repositories, including single-project repos and uv workspaces.
 
-## Workflow
+## When To Use
+
+- Use this skill for pytest setup, execution, and troubleshooting in `uv`-managed repositories.
+- Use this skill when the user wants package-targeted pytest runs for a workspace member.
+- Keep scope on test setup and execution; do not use this as a generic repo bootstrap skill.
+
+## Primary Workflow
 
 1. Detect repository mode.
-- Treat repo as workspace when `pyproject.toml` defines `[tool.uv.workspace]`.
-- Treat repo as single project otherwise.
-
-2. Bootstrap pytest dependencies and baseline config.
-- Run `scripts/bootstrap_pytest_uv.sh --workspace-root <repo>`.
-- Add `--package <member-name>` for workspace member package setup.
-- Add `--with-cov` when `pytest-cov` should be installed and baseline coverage flags added.
-- Add `--dry-run` to preview all actions without mutating files.
-
-3. Run tests with uv.
-- Run `scripts/run_pytest_uv.sh --workspace-root <repo>` for root-project execution.
-- Run `scripts/run_pytest_uv.sh --workspace-root <repo> --package <member-name>` for workspace member execution.
-- Pass through pytest selectors/options after `--`, for example:
-  - `scripts/run_pytest_uv.sh --workspace-root <repo> -- --maxfail=1 -q`
-  - `scripts/run_pytest_uv.sh --workspace-root <repo> --package api --path tests/unit -- -k auth -m "not slow"`
-
-4. Apply balanced quality gates.
-- Require passing test runs before concluding work.
-- Recommend coverage reporting as guidance, not a hard threshold, unless user explicitly requests enforced minimum coverage.
-
-5. Troubleshoot failures in this order.
-- Confirm command context: root vs `--package` run target.
-- Confirm test discovery layout: `tests/`, `test_*.py`, `*_test.py`.
-- Confirm marker registration in `tool.pytest.ini_options.markers` when custom markers are used.
-- Confirm import path assumptions (package install mode, working directory, and module names).
+   - Treat the repo as a workspace when `pyproject.toml` defines `[tool.uv.workspace]`.
+   - Treat it as a single project otherwise.
+2. Bootstrap pytest dependencies and baseline config:
+   - `scripts/bootstrap_pytest_uv.sh --workspace-root <repo>`
+   - add `--package <member-name>` for workspace-member setup
+   - add `--with-cov` when the task explicitly wants `pytest-cov`
+   - add `--dry-run` when previewing changes
+3. Run tests:
+   - `scripts/run_pytest_uv.sh --workspace-root <repo>`
+   - `scripts/run_pytest_uv.sh --workspace-root <repo> --package <member-name>`
+4. Troubleshoot failures in this order:
+   - command context
+   - test discovery layout
+   - marker registration
+   - import-path assumptions
 
 ## Test Authoring Guidance
 
@@ -129,19 +125,33 @@ Return STATUS, setup actions, concise test summary, grouped likely causes for fa
 8. If users provide no customization or profile files, keep existing script defaults unchanged.
 9. See [`references/interactive-customization.md`](references/interactive-customization.md) for schema and examples.
 
+## Outputs
+
+- `status`
+  - `success`: setup or test execution completed
+  - `blocked`: repo shape or prerequisites prevented the run
+  - `failed`: bootstrap or test execution ran but did not complete cleanly
+- `path_type`
+  - `primary`: canonical shell entrypoints completed
+- `output`
+  - setup actions taken
+  - exact run command used
+  - concise failure grouping when applicable
+
+## Guardrails
+
+- Require `uv` for all installation and execution paths.
+- Require an existing `pyproject.toml` under `--workspace-root`.
+- Keep package targeting explicit when operating on a workspace member.
+
 ## References
 
-- Use [`references/pytest-workflow.md`](references/pytest-workflow.md) for pytest conventions, config keys, fixtures, markers, and troubleshooting.
-- Use [`references/uv-workspace-testing.md`](references/uv-workspace-testing.md) for uv workspace execution patterns (`uv run`, `uv run --package`, package-targeted test runs).
+- `references/pytest-workflow.md`
+- `references/uv-workspace-testing.md`
+- `references/customization.md`
+- `references/interactive-customization.md`
 
-## Resources
+## Script Inventory
 
-### scripts/
-
-- `scripts/bootstrap_pytest_uv.sh`: Install pytest dev dependencies and append baseline `tool.pytest.ini_options` when missing.
-- `scripts/run_pytest_uv.sh`: Run pytest via uv for root project or workspace member package, with passthrough args.
-
-### references/
-
-- `references/pytest-workflow.md`: Practical pytest setup and usage guidance.
-- `references/uv-workspace-testing.md`: uv execution guidance for single-project and workspace repositories.
+- `scripts/bootstrap_pytest_uv.sh`
+- `scripts/run_pytest_uv.sh`

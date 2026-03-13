@@ -5,20 +5,33 @@ description: Bootstrap Python FastAPI services on macOS using uv with consistent
 
 # Bootstrap Python Service
 
-Create production-oriented FastAPI starter layouts using shared uv project/workspace scaffolding.
+## Purpose
 
-## Workflow
+Create production-oriented FastAPI starter layouts using one direct shell entrypoint backed by the shared `bootstrap-uv-python-workspace` scaffolding scripts.
 
-1. Choose mode:
-- Project: single FastAPI service scaffold.
-- Workspace: multi-member uv workspace scaffold.
-2. Run `scripts/init_python_service.sh` with explicit `--name` and optional `--path`, `--python`, `--force`, `--no-git-init`, `--initial-commit`.
-3. For workspace mode, optionally pass `--members` and `--profile-map`.
-4. Verify quality checks:
-- `uv run pytest`
-- `uv run ruff check .`
-- `uv run mypy .`
-5. Return exact next run/test commands.
+## When To Use
+
+- Use this skill for new FastAPI service scaffolds.
+- Use this skill when the user wants either a single service project or a workspace with service members.
+- Hand off to `bootstrap-uv-python-workspace` only when the task is generic `uv` scaffolding without FastAPI-specific expectations.
+
+## Single-Path Workflow
+
+1. Collect the required inputs:
+   - `name`
+   - `mode`
+   - `path`
+   - optional `python`, `members`, `profile_map`, `force`, `initial_commit`, `no_git_init`
+2. Run the canonical entrypoint:
+   ```bash
+   scripts/init_python_service.sh --name <name> --mode <project|workspace>
+   ```
+3. Let the script delegate to the shared `bootstrap-uv-python-workspace` scaffolding layer.
+4. Accept the built-in validation path:
+   - `uv run pytest`
+   - `uv run ruff check .`
+   - `uv run mypy .`
+5. Return the generated path plus the exact next-step run and check commands emitted by the script.
 
 ## Commands
 
@@ -49,6 +62,46 @@ scripts/init_python_service.sh --name my-service --no-git-init
 scripts/init_python_service.sh --name my-service --initial-commit
 ```
 
+## Inputs
+
+- `name`: required
+- `mode`: `project` or `workspace`; defaults to `project`
+- `path`: optional target directory; defaults to `./<name>`
+- `python`: optional Python version; defaults to `3.13`
+- `members`: optional workspace member CSV for workspace mode
+- `profile_map`: optional workspace profile CSV for workspace mode
+- `force`: optional flag allowing non-empty target directories
+- `initial_commit`: optional flag creating an initial commit after a successful scaffold
+- `no_git_init`: optional flag disabling git initialization
+
+## Outputs
+
+- `status`
+  - `success`: scaffold and built-in validation completed
+  - `blocked`: prerequisites or target-directory constraints prevented the run
+  - `failed`: the script started but validation or generation failed
+- `path_type`
+  - `primary`: the canonical shell entrypoint completed
+- `output`
+  - resolved project or workspace path
+  - emitted run commands
+  - emitted validation commands
+
+## Defaults
+
+- mode: `project`
+- Python version: `3.13`
+- quality tooling: `pytest`, `ruff`, `mypy`
+- workspace default members: `core-lib,api-service`
+- workspace default profiles: first member `package`, remaining members `service`
+
+## Guardrails
+
+- Refuse non-empty target directories unless `--force` is set.
+- Require `uv` and `git` unless git initialization was explicitly disabled.
+- Fail when workspace-only options are used in project mode.
+- Fail when `--initial-commit` is combined with `--no-git-init`.
+
 ## FastAPI Guidance
 
 Use uv FastAPI integration style as primary guidance:
@@ -60,21 +113,11 @@ uv run fastapi dev app/main.py
 uv run fastapi run app/main.py
 ```
 
-## Guardrails
+## Fallbacks and Handoffs
 
-- Refuse non-empty target directories unless `--force` is set.
-- Require `uv` and `git` (unless `--no-git-init` is set and no initial commit is requested).
-- Fail when workspace-only options are used in project mode.
-- Fail when `--initial-commit` is used with `--no-git-init`.
-
-## Defaults
-
-- Mode: `project`
-- Python version: `3.13`
-- Quality tooling: `pytest`, `ruff`, `mypy`
-- Workspace defaults (when mode is `workspace`):
-- Members: `core-lib,api-service`
-- Profiles: first member `package`, remaining members `service`
+- The preferred path is always `scripts/init_python_service.sh`.
+- Use `bootstrap-uv-python-workspace` directly only when FastAPI-specific behavior is not wanted.
+- Recommend `bootstrap-python-mcp-service` instead when the user wants a FastMCP server rather than an HTTP API service.
 
 ## Automation Suitability
 
@@ -166,16 +209,17 @@ Return STATUS, generated path, exact command transcript, and minimal remediation
 6. If users provide no customization or profile files, keep existing script defaults unchanged.
 7. See [`references/interactive-customization.md`](references/interactive-customization.md) for schema and examples.
 
-## Resources
+## References
 
-### scripts/
+- `references/conventions.md`
+- `references/customization.md`
+- `references/interactive-customization.md`
 
-- `init_python_service.sh`: thin orchestrator that delegates to `bootstrap-uv-python-workspace` scripts.
+## Script Inventory
 
-### references/
+- `scripts/init_python_service.sh`
+- Delegates to the shared workspace bootstrap scripts shipped by `bootstrap-uv-python-workspace`.
 
-- `conventions.md`: runtime, dependency, and quality defaults.
+## Assets
 
-### assets/
-
-- `README.md.tmpl`: README template for service-focused output.
+- `assets/README.md.tmpl`

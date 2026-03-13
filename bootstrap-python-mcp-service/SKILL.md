@@ -5,21 +5,34 @@ description: Bootstrap Python MCP server projects and workspaces on macOS using 
 
 # Bootstrap Python MCP Service
 
-Create production-oriented FastMCP starter layouts using shared uv project/workspace scaffolding plus deterministic MCP overlays.
+## Purpose
 
-## Workflow
+Create FastMCP starter layouts using one direct shell entrypoint backed by the shared `bootstrap-uv-python-workspace` scaffolding scripts plus deterministic MCP overlay logic.
 
-1. Choose mode:
-- Project: scaffold one MCP service.
-- Workspace: scaffold uv workspace, then convert service members to FastMCP.
-2. Run `scripts/init_fastmcp_service.sh` with explicit `--name` and optional `--path`, `--python`, `--force`, `--no-git-init`, `--initial-commit`.
-3. For workspace mode, optionally pass `--members` and `--profile-map`.
-4. Verify quality checks:
-- `uv run pytest`
-- `uv run ruff check .`
-- `uv run mypy .`
-5. If bootstrapping from OpenAPI/FastAPI, run `scripts/assess_api_for_mcp.py` and review mapping report.
-6. Return exact next commands.
+## When To Use
+
+- Use this skill for new FastMCP server scaffolds.
+- Use this skill when the user wants OpenAPI or FastAPI-to-MCP mapping guidance alongside bootstrap.
+- Recommend `bootstrap-python-service` when the user wants a FastAPI service but not an MCP server.
+
+## Single-Path Workflow
+
+1. Collect the required inputs:
+   - `name`
+   - `mode`
+   - `path`
+   - optional `python`, `members`, `profile_map`, `force`, `initial_commit`, `no_git_init`
+2. Run the canonical entrypoint:
+   ```bash
+   scripts/init_fastmcp_service.sh --name <name> --mode <project|workspace>
+   ```
+3. Let the script delegate to the shared `bootstrap-uv-python-workspace` scaffolding layer, then apply the FastMCP overlay.
+4. Accept the built-in validation path:
+   - `uv run pytest`
+   - `uv run ruff check .`
+   - `uv run mypy .`
+5. If the task starts from an existing API, optionally generate a mapping report with `uv run python scripts/assess_api_for_mcp.py ...`.
+6. Return the generated path plus the exact next-step commands emitted by the script.
 
 ## Commands
 
@@ -50,11 +63,45 @@ scripts/init_fastmcp_service.sh --name my-mcp-server --no-git-init
 scripts/init_fastmcp_service.sh --name my-mcp-server --initial-commit
 
 # Generate MCP mapping guidance from OpenAPI
-python3 scripts/assess_api_for_mcp.py --openapi ./openapi.yaml --out ./mcp_mapping_report.md
+uv run python scripts/assess_api_for_mcp.py --openapi ./openapi.yaml --out ./mcp_mapping_report.md
 
 # Generate MCP mapping guidance from existing FastAPI app
-python3 scripts/assess_api_for_mcp.py --fastapi app.main:app --out ./mcp_mapping_report.md
+uv run python scripts/assess_api_for_mcp.py --fastapi app.main:app --out ./mcp_mapping_report.md
 ```
+
+## Inputs
+
+- `name`: required
+- `mode`: `project` or `workspace`; defaults to `project`
+- `path`: optional target directory; defaults to `./<name>`
+- `python`: optional Python version; defaults to `3.13`
+- `members`: optional workspace member CSV for workspace mode
+- `profile_map`: optional workspace profile CSV for workspace mode
+- `force`: optional flag allowing non-empty target directories
+- `initial_commit`: optional flag creating an initial commit after a successful scaffold
+- `no_git_init`: optional flag disabling git initialization
+
+## Outputs
+
+- `status`
+  - `success`: scaffold and built-in validation completed
+  - `blocked`: prerequisites or target-directory constraints prevented the run
+  - `failed`: the script started but validation or generation failed
+- `path_type`
+  - `primary`: the canonical shell entrypoint completed
+- `output`
+  - resolved project or workspace path
+  - emitted run commands
+  - emitted validation commands
+  - optional mapping-report path
+
+## Defaults
+
+- mode: `project`
+- Python version: `3.13`
+- quality tooling: `pytest`, `ruff`, `mypy`
+- workspace default members: `core-lib,api-service`
+- workspace default profiles: first member `package`, remaining members `service`
 
 ## Base UV/FastAPI Guidance
 
@@ -92,18 +139,15 @@ Suggested queries:
 
 - Refuse non-empty target directories unless `--force` is set.
 - Require at least one service profile member in workspace mode.
-- Require `uv` and `git` (unless `--no-git-init` is set and no initial commit is requested).
+- Require `uv` and `git` unless git initialization was explicitly disabled.
 - Fail when workspace-only options are used in project mode.
-- Fail when `--initial-commit` is used with `--no-git-init`.
+- Fail when `--initial-commit` is combined with `--no-git-init`.
 
-## Defaults
+## Fallbacks and Handoffs
 
-- Mode: `project`
-- Python version: `3.13`
-- Quality tooling: `pytest`, `ruff`, `mypy`
-- Workspace defaults:
-- Members: `core-lib,api-service`
-- Profiles: first member `package`, remaining members `service`
+- The preferred path is always `scripts/init_fastmcp_service.sh`.
+- Use `bootstrap-python-service` when the user wants FastAPI-only output.
+- Use `bootstrap-uv-python-workspace` directly only when FastMCP-specific behavior is not wanted.
 
 ## Automation Suitability
 
@@ -127,9 +171,9 @@ Task:
    `scripts/init_fastmcp_service.sh --name <MCP_SERVICE_NAME> --mode workspace --path <TARGET_PATH> --python <PYTHON_VERSION> --members "<MEMBERS_CSV>" --profile-map "<PROFILE_MAP>" <FORCE_FLAG> <GIT_INIT_MODE>`
 3. If <GENERATE_MAPPING_REPORT:TRUE|FALSE> is TRUE:
    - If <MAPPING_INPUT_MODE:NONE|OPENAPI|FASTAPI_IMPORT> is OPENAPI, run:
-     `python3 scripts/assess_api_for_mcp.py --openapi <MAPPING_INPUT_PATH> --out <TARGET_PATH>/mcp_mapping_report.md`
+     `uv run python scripts/assess_api_for_mcp.py --openapi <MAPPING_INPUT_PATH> --out <TARGET_PATH>/mcp_mapping_report.md`
    - If <MAPPING_INPUT_MODE:NONE|OPENAPI|FASTAPI_IMPORT> is FASTAPI_IMPORT, run:
-     `python3 scripts/assess_api_for_mcp.py --fastapi <MAPPING_INPUT_PATH> --out <TARGET_PATH>/mcp_mapping_report.md`
+     `uv run python scripts/assess_api_for_mcp.py --fastapi <MAPPING_INPUT_PATH> --out <TARGET_PATH>/mcp_mapping_report.md`
 4. Run verification checks in <TARGET_PATH>:
    - `uv run pytest`
    - `uv run ruff check .`
@@ -192,18 +236,19 @@ Run only commands needed for this flow, then return STATUS, exact command transc
 6. If users provide no customization or profile files, keep existing script defaults unchanged.
 7. See [`references/interactive-customization.md`](references/interactive-customization.md) for schema and examples.
 
-## Resources
+## References
 
-### scripts/
+- `references/mcp-mapping-guidelines.md`
+- `references/fastmcp-docs-lookup.md`
+- `references/customization.md`
+- `references/interactive-customization.md`
 
-- `init_fastmcp_service.sh`: thin orchestrator that delegates to uv workspace bootstrap then overlays FastMCP files/dependencies.
-- `assess_api_for_mcp.py`: endpoint-to-MCP mapping analyzer.
+## Script Inventory
 
-### references/
+- `scripts/init_fastmcp_service.sh`
+- `scripts/assess_api_for_mcp.py`
+- Delegates to the shared workspace bootstrap scripts shipped by `bootstrap-uv-python-workspace`.
 
-- `mcp-mapping-guidelines.md`: practical heuristics for MCP primitives, route maps, transforms, and workspace mapping boundaries.
-- `fastmcp-docs-lookup.md`: curated `fastmcp_docs` search patterns.
+## Assets
 
-### assets/
-
-- `README.md.tmpl`: README template for MCP project output.
+- `assets/README.md.tmpl`

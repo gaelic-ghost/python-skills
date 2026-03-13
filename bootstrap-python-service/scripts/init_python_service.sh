@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
+emulate -L zsh
 set -euo pipefail
 
 usage() {
