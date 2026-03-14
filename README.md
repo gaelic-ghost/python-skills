@@ -112,7 +112,7 @@ Then ask your Agent for help finding a skill for "" or ""
 - The repository stays flat at the root; active skills are not nested under `skills/`.
 - Root docs are the canonical installation and discovery surface.
 - Each skill’s maintained contract lives in `SKILL.md` plus `agents/openai.yaml`; per-skill `README.md` files are intentionally retired.
-- Maintainer-side validation is standardized on `uv run pytest` and `uv run python scripts/validate_repo_metadata.py`.
+- Maintainer-side validation is standardized on `uv run pytest` and `uv run scripts/validate_repo_metadata.py`.
 
 ## Keywords
 

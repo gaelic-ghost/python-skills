@@ -217,8 +217,7 @@ render_project_readme() {
   local service_name="$1"
   local output_path="$2"
 
-  local script_dir
-  script_dir="$(cd "$(dirname "$0")" && pwd)"
+  local script_dir="${0:A:h}"
   local template
   template="$script_dir/../assets/README.md.tmpl"
   [[ -f "$template" ]] || fail "README template not found at '$template'"
@@ -237,7 +236,7 @@ INITIAL_COMMIT=0
 NO_GIT_INIT=0
 
 SKILL_NAME="bootstrap-python-mcp-service"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="${0:A:h}"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 GLOBAL_PROFILE="$HOME/.config/gaelic-ghost/python-skills/$SKILL_NAME/customization.yaml"
 REPO_PROFILE="$REPO_ROOT/.codex/profiles/$SKILL_NAME/customization.yaml"

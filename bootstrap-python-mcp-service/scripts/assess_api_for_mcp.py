@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run
 """Assess OpenAPI/FastAPI endpoints for MCP mapping guidance."""
 
 from __future__ import annotations
@@ -50,7 +50,8 @@ def load_openapi(path: Path) -> dict[str, Any]:
         import yaml  # type: ignore
     except ImportError as exc:  # pragma: no cover
         raise SystemExit(
-            "YAML OpenAPI parsing requires PyYAML. Install with: pip install pyyaml"
+            "YAML OpenAPI parsing requires PyYAML. Run this script in a uv project with "
+            "PyYAML available, or add it with: uv add pyyaml"
         ) from exc
 
     return yaml.safe_load(text)

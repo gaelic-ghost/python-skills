@@ -31,7 +31,7 @@ Create FastMCP starter layouts using one direct shell entrypoint backed by the s
    - `uv run pytest`
    - `uv run ruff check .`
    - `uv run mypy .`
-5. If the task starts from an existing API, optionally generate a mapping report with `uv run python scripts/assess_api_for_mcp.py ...`.
+5. If the task starts from an existing API, optionally generate a mapping report with `uv run scripts/assess_api_for_mcp.py ...`.
 6. Return the generated path plus the exact next-step commands emitted by the script.
 
 ## Commands
@@ -63,10 +63,10 @@ scripts/init_fastmcp_service.sh --name my-mcp-server --no-git-init
 scripts/init_fastmcp_service.sh --name my-mcp-server --initial-commit
 
 # Generate MCP mapping guidance from OpenAPI
-uv run python scripts/assess_api_for_mcp.py --openapi ./openapi.yaml --out ./mcp_mapping_report.md
+uv run scripts/assess_api_for_mcp.py --openapi ./openapi.yaml --out ./mcp_mapping_report.md
 
 # Generate MCP mapping guidance from existing FastAPI app
-uv run python scripts/assess_api_for_mcp.py --fastapi app.main:app --out ./mcp_mapping_report.md
+uv run scripts/assess_api_for_mcp.py --fastapi app.main:app --out ./mcp_mapping_report.md
 ```
 
 ## Inputs
@@ -171,9 +171,9 @@ Task:
    `scripts/init_fastmcp_service.sh --name <MCP_SERVICE_NAME> --mode workspace --path <TARGET_PATH> --python <PYTHON_VERSION> --members "<MEMBERS_CSV>" --profile-map "<PROFILE_MAP>" <FORCE_FLAG> <GIT_INIT_MODE>`
 3. If <GENERATE_MAPPING_REPORT:TRUE|FALSE> is TRUE:
    - If <MAPPING_INPUT_MODE:NONE|OPENAPI|FASTAPI_IMPORT> is OPENAPI, run:
-     `uv run python scripts/assess_api_for_mcp.py --openapi <MAPPING_INPUT_PATH> --out <TARGET_PATH>/mcp_mapping_report.md`
+     `uv run scripts/assess_api_for_mcp.py --openapi <MAPPING_INPUT_PATH> --out <TARGET_PATH>/mcp_mapping_report.md`
    - If <MAPPING_INPUT_MODE:NONE|OPENAPI|FASTAPI_IMPORT> is FASTAPI_IMPORT, run:
-     `uv run python scripts/assess_api_for_mcp.py --fastapi <MAPPING_INPUT_PATH> --out <TARGET_PATH>/mcp_mapping_report.md`
+     `uv run scripts/assess_api_for_mcp.py --fastapi <MAPPING_INPUT_PATH> --out <TARGET_PATH>/mcp_mapping_report.md`
 4. Run verification checks in <TARGET_PATH>:
    - `uv run pytest`
    - `uv run ruff check .`

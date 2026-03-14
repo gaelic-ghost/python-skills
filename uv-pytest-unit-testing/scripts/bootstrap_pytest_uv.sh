@@ -8,7 +8,7 @@ WITH_COV=0
 DRY_RUN=0
 
 SKILL_NAME="uv-pytest-unit-testing"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="${0:A:h}"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 GLOBAL_PROFILE="$HOME/.config/gaelic-ghost/python-skills/$SKILL_NAME/customization.yaml"
 REPO_PROFILE="$REPO_ROOT/.codex/profiles/$SKILL_NAME/customization.yaml"

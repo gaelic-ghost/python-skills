@@ -20,4 +20,4 @@
 - Treat the root `README.md` as the canonical install and discovery surface for the repository.
 - Treat each skill's `SKILL.md` plus `agents/openai.yaml` as the canonical per-skill contract pair.
 - Do not reintroduce per-skill `README.md` files as maintained public docs unless a later repo decision explicitly restores that surface.
-- Run repo validation with `uv run python scripts/validate_repo_metadata.py` and `uv run pytest` before committing documentation or metadata changes.
+- Run repo validation with `uv run scripts/validate_repo_metadata.py` and `uv run pytest` before committing documentation or metadata changes.

@@ -2,4 +2,4 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/../.."
-uv run python scripts/validate_repo_metadata.py
+uv run scripts/validate_repo_metadata.py
