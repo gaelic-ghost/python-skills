@@ -11,6 +11,7 @@ Check that:
 - `README.md` uses the canonical `*-skills` section schema
 - `README.md` presents the repo as a plugin-first Codex bundle
 - `README.md` also states the OpenAI-first, future-Claude direction accurately
+- `README.md` includes accurate direct skill install guidance from the shared `skills/` tree as well as plugin install guidance
 - the active skill inventory matches the actual `skills/*/SKILL.md` directories
 - the repository layout snippet matches the real repo
 - `.codex-plugin/plugin.json` exists and points at `./skills/`

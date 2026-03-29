@@ -9,6 +9,7 @@ For standards and maintainer operating guidance, see [AGENTS.md](./AGENTS.md).
 - [What This Codex Plugin Includes](#what-this-codex-plugin-includes)
 - [Bundled Skill Guide](#bundled-skill-guide)
 - [Platform Direction](#platform-direction)
+- [Install As Skills](#install-as-skills)
 - [Local Plugin Testing](#local-plugin-testing)
 - [Plugin Structure](#plugin-structure)
 - [Maintainer Workflow](#maintainer-workflow)
@@ -45,6 +46,41 @@ The shared long-term direction across skills repositories is broader:
 - add vendor plugin packaging as a thin layer on top of the shared `skills/` tree instead of duplicating the skills themselves
 
 That means `skills/` is the shared workflow surface, while `.codex-plugin/` is the current active packaging layer. Future Claude support should add Claude-specific packaging and optimizations without forking the real skill bodies unless a genuine platform-specific divergence forces it.
+
+## Install As Skills
+
+OpenAI's skills docs still support direct skill installation and local discovery through standard `.agents/skills` locations:
+
+- [Agent Skills](https://developers.openai.com/codex/skills/)
+- [Where to save skills](https://developers.openai.com/codex/skills/#where-to-save-skills)
+
+This repository supports that path too. The shared skills live under `./skills/`, so you can install one, several, or all of them by symlinking or copying those skill directories into a supported skill location such as `~/.agents/skills/`.
+
+Install one skill:
+
+```bash
+mkdir -p ~/.agents/skills
+ln -sfn "$PWD/skills/bootstrap-python-service" ~/.agents/skills/bootstrap-python-service
+```
+
+Install multiple named skills:
+
+```bash
+mkdir -p ~/.agents/skills
+ln -sfn "$PWD/skills/bootstrap-python-service" ~/.agents/skills/bootstrap-python-service
+ln -sfn "$PWD/skills/bootstrap-python-mcp-service" ~/.agents/skills/bootstrap-python-mcp-service
+```
+
+Install all shipped skills at once:
+
+```bash
+mkdir -p ~/.agents/skills
+for skill_dir in "$PWD"/skills/*; do
+  ln -sfn "$skill_dir" "$HOME/.agents/skills/$(basename "$skill_dir")"
+done
+```
+
+Codex supports symlinked skill folders, so symlinks are a good fit while developing or iterating on this repository. If a newly installed skill does not appear right away, restart Codex.
 
 ## Local Plugin Testing
 
@@ -102,6 +138,7 @@ Keep the repo plugin-first:
 - Maintain `.agents/plugins/marketplace.json` for local Codex install and smoke testing.
 - Keep `skills/` vendor-neutral by default, and localize vendor-specific packaging to thin top-level surfaces.
 - Treat OpenAI support as the current release target, while preserving a structure that can later add Claude Code skill and plugin support cleanly.
+- Keep direct skill install guidance accurate too; this repo supports both plugin installs and direct skill installs from the shared `skills/` tree.
 - Keep bundled skills under `skills/` only; do not reintroduce a flat top-level skill layout.
 - Treat each skill's `SKILL.md` plus `agents/openai.yaml` as the canonical per-skill contract pair.
 - Run repo validation before commits:
@@ -116,6 +153,7 @@ uv run pytest
 - Root docs are the canonical installation and discovery surface.
 - The repository is now plugin-first; active bundled skills live under `skills/`.
 - `.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json` are maintained surfaces, not generated throwaways.
+- Direct skill installs remain supported from the shared `skills/` tree through the standard `.agents/skills` locations.
 - OpenAI packaging is the active release surface today; Claude Code packaging is a planned follow-on surface, not a second live contract yet.
 - Each skill’s maintained contract lives in `SKILL.md` plus `agents/openai.yaml`; per-skill `README.md` files are intentionally retired.
 - Generated bootstrap projects now ship `pydantic-settings`, a committed `.env`, and an ignored `.env.local`.

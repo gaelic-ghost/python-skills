@@ -20,6 +20,7 @@
 - Treat the root `README.md` as the canonical install and discovery surface for the repository.
 - Treat `.codex-plugin/plugin.json` as the canonical plugin distribution contract and `.agents/plugins/marketplace.json` as the canonical local install/testing surface.
 - Keep `skills/` as the shared, vendor-neutral workflow surface wherever practical. Prefer thin vendor packaging layers over duplicated skill trees.
+- Keep direct skill install guidance accurate as a first-class supported path alongside plugin installation. Users should be able to install one skill, multiple skills, or all shipped skills from the shared `skills/` tree.
 - Treat each skill's `SKILL.md` plus `agents/openai.yaml` as the canonical per-skill contract pair.
 - When building or updating skills in this repository, always use every applicable field, option, and feature from the open Agent Skills standard and the OpenAI Codex skill extensions. Treat "applicable" as "materially useful and accurate for the shipped skill", not as permission to add decorative or misleading metadata.
 - OpenAI support and optimizations are required wherever they are applicable and useful in this repository's current release surface.

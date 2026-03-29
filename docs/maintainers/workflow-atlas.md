@@ -13,6 +13,11 @@ These are the only active bundled skill surfaces that root docs, plugin metadata
 
 OpenAI packaging is the live release surface today. Claude Code compatibility should be preserved at the shared-skill layer where practical, but Claude-specific packaging is still a planned milestone rather than an active maintained contract.
 
+The repository should still support both user-facing install paths:
+
+- direct skill installation from `skills/` into standard `.agents/skills` locations
+- Codex plugin installation through `.codex-plugin/plugin.json` and marketplace metadata
+
 ## Skill Roles
 
 ### `bootstrap-uv-python-workspace`

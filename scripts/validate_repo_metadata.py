@@ -20,6 +20,8 @@ README_REQUIRED_HEADINGS = [
     "## Table of Contents",
     "## What This Codex Plugin Includes",
     "## Bundled Skill Guide",
+    "## Platform Direction",
+    "## Install As Skills",
     "## Local Plugin Testing",
     "## Plugin Structure",
     "## Maintainer Workflow",
