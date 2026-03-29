@@ -1,6 +1,13 @@
 ---
 name: bootstrap-uv-python-workspace
 description: Bootstrap new Python projects and multi-package workspaces with uv on macOS using deterministic scripts and consistent defaults. Use when creating a new uv Python project, scaffolding a uv monorepo/workspace, setting up package or service profiles, customizing scaffold defaults through layered YAML profiles, initializing dev tooling (pytest, ruff, mypy), creating README scaffolds, or initializing git with an optional first commit.
+license: Apache-2.0
+compatibility: Designed for Codex and compatible Agent Skills clients on macOS with uv, git, Python project scaffolding workflows, and shell access for the bundled scripts.
+metadata:
+  owner: gaelic-ghost
+  repo: python-skills
+  category: python-bootstrap
+allowed-tools: Bash(uv:*) Bash(git:*) Read
 ---
 
 # Bootstrap UV Python Workspace
@@ -29,7 +36,11 @@ Use this skill as the shared scaffolding basis for other Python bootstrap skills
    - `uv run pytest`
    - `uv run ruff check .`
    - `uv run mypy .`
-5. Return the generated path plus the exact next-step commands emitted by the script.
+5. Confirm the generated output includes:
+   - a committed `.env` for safe defaults
+   - an ignored `.env.local` for machine-local or secret overrides
+   - typed configuration via `pydantic-settings`
+6. Return the generated path plus the exact next-step commands emitted by the script.
 
 ## Commands
 
@@ -63,6 +74,7 @@ scripts/init_uv_python_project.sh --name my-service --profile service --initial-
 
 - Python version: `3.13` (override with `--python`).
 - Quality tooling: `pytest`, `ruff`, `mypy`.
+- Config baseline: committed `.env`, ignored `.env.local`, and `pydantic-settings`.
 - Git initialization: enabled by default (disable via `--no-git-init`).
 - Workspace defaults:
 - Members: `core-lib,api-service`

@@ -13,6 +13,7 @@ uv init --app --name my-service --python 3.13 --vcs none ./my-service
 
 ```bash
 uv add fastapi --extra standard
+uv add pydantic-settings python-dotenv
 uv add --group dev pytest ruff mypy
 ```
 
@@ -53,6 +54,8 @@ uv init --app --name api-service --python 3.13 --vcs none ./packages/api-service
 ```bash
 uv add --package core-lib --group dev pytest ruff mypy
 uv add --package api-service --group dev pytest ruff mypy
+uv add --package core-lib pydantic-settings python-dotenv
+uv add --package api-service pydantic-settings python-dotenv
 uv add --package api-service fastapi --extra standard
 ```
 

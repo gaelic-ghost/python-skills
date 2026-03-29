@@ -14,6 +14,12 @@ Starter Python service scaffolded with `uv` and `FastAPI`.
 uv sync
 ```
 
+## Configuration
+
+- `.env` is committed and intended for safe, non-secret defaults.
+- `.env.local` is ignored and intended for local or secret overrides.
+- `app/config.py` uses `pydantic-settings` to load `.env` and then `.env.local`.
+
 ## Run locally
 
 ```bash
@@ -33,5 +39,6 @@ uv run mypy .
 ## Project layout
 
 - `app/main.py`: FastAPI app with health endpoint
-- `tests/test_health.py`: basic API test
+- `app/config.py`: typed settings loaded from `.env` and `.env.local`
+- `tests/test_service.py`: baseline app and settings checks
 - `pyproject.toml`: project metadata and dependencies

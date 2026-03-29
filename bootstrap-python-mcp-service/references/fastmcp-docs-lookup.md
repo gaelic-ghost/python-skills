@@ -23,6 +23,8 @@ Use these search prompts with the `fastmcp_docs` MCP server for current implemen
 
 - `FastMCP inspect command`
 - `FastMCP deployment options`
+- `FastMCP global settings .env`
+- `FastMCP environment variable interpolation`
 
 ## How to apply results
 

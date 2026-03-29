@@ -1,6 +1,13 @@
 ---
 name: bootstrap-python-service
 description: Bootstrap Python FastAPI services on macOS using uv with consistent project and workspace scaffolds. Use when creating a new backend/API service from scratch, scaffolding a single uv service project, scaffolding a uv workspace with package/service members, customizing scaffold defaults through layered YAML profiles, initializing pytest+ruff+mypy defaults, creating README.md, initializing git, and running initial validation commands.
+license: Apache-2.0
+compatibility: Designed for Codex and compatible Agent Skills clients on macOS with uv, git, FastAPI-oriented Python workflows, and shell access for the bundled scripts.
+metadata:
+  owner: gaelic-ghost
+  repo: python-skills
+  category: python-bootstrap
+allowed-tools: Bash(uv:*) Bash(git:*) Read
 ---
 
 # Bootstrap Python Service
@@ -31,7 +38,11 @@ Create production-oriented FastAPI starter layouts using one direct shell entryp
    - `uv run pytest`
    - `uv run ruff check .`
    - `uv run mypy .`
-5. Return the generated path plus the exact next-step run and check commands emitted by the script.
+5. Confirm the generated project includes:
+   - a committed `.env` for safe defaults
+   - an ignored `.env.local` for machine-local or secret overrides
+   - typed configuration via `pydantic-settings`
+6. Return the generated path plus the exact next-step run and check commands emitted by the script.
 
 ## Commands
 
@@ -92,6 +103,7 @@ scripts/init_python_service.sh --name my-service --initial-commit
 - mode: `project`
 - Python version: `3.13`
 - quality tooling: `pytest`, `ruff`, `mypy`
+- config baseline: committed `.env`, ignored `.env.local`, and `pydantic-settings`
 - workspace default members: `core-lib,api-service`
 - workspace default profiles: first member `package`, remaining members `service`
 
@@ -108,10 +120,13 @@ Use uv FastAPI integration style as primary guidance:
 
 ```bash
 uv add fastapi --extra standard
+uv add pydantic-settings python-dotenv
 uv run fastapi dev app/main.py
 # optional production-style local run
 uv run fastapi run app/main.py
 ```
+
+Generated FastAPI scaffolds should use `pydantic-settings` with `.env` plus `.env.local`, following the documented FastAPI settings pattern with cached settings loading.
 
 ## Fallbacks and Handoffs
 

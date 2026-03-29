@@ -48,12 +48,13 @@ This skill owns repo-shape detection and pytest workflow guidance for `uv` repos
 
 ## Contract Shape
 
-Each active skill should maintain this minimum contract:
+Each active skill should maintain the full repo contract:
 
 - frontmatter `name` matches the directory name
+- frontmatter includes the repo-required open-standard fields: `license`, `compatibility`, `metadata`, and `allowed-tools`
 - `SKILL.md` clearly states when to use the skill and its primary workflow
 - script references in `SKILL.md` resolve to real files
-- `agents/openai.yaml` presents the same public surface as `SKILL.md`
+- `agents/openai.yaml` presents the same public surface as `SKILL.md`, including interface metadata and invocation policy
 - assets and references called out in docs actually exist
 
 ## Repo-Level Sources Of Truth
@@ -76,3 +77,12 @@ Maintainers should validate three layers together whenever the skill surface cha
    - metadata validator and associated tests
 
 Do not treat one of these layers as authoritative if the others disagree; update all of them in the same pass.
+
+## Scaffold Defaults
+
+Across the bootstrap skills, generated outputs should stay aligned on:
+
+- `pydantic-settings` for typed config loading
+- a committed `.env` for safe defaults
+- an ignored `.env.local` for machine-local or secret overrides
+- validation via `uv run pytest`, `uv run ruff check .`, and `uv run mypy .`

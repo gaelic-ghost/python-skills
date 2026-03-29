@@ -35,7 +35,7 @@ fail() {
 }
 
 require_cmd() {
-  command -v "$1" >/dev/null 2>&1 || fail "Missing required command: $1"
+  command -v "$1" >/dev/null 2>&1 || fail "Missing required command '$1'. Install it and re-run the workspace scaffold."
 }
 
 trim() {
@@ -61,7 +61,7 @@ bool_to_int() {
   case "$value" in
     1|true|yes|on) printf '1\n' ;;
     0|false|no|off) printf '0\n' ;;
-    *) fail "invalid boolean value '$1'" ;;
+    *) fail "Invalid boolean value '$1' in customization data." ;;
   esac
 }
 
@@ -84,7 +84,7 @@ apply_config_value() {
         GIT_INIT=1
       fi
       ;;
-    *) fail "unknown config key '$key'" ;;
+    *) fail "Unknown config key '$key' in customization file." ;;
   esac
 }
 
@@ -93,7 +93,7 @@ load_config_file() {
   local required="$2"
 
   if [[ ! -f "$path" ]]; then
-    [[ "$required" -eq 1 ]] && fail "config file not found: $path"
+    [[ "$required" -eq 1 ]] && fail "Config file not found: $path"
     return 0
   fi
 
@@ -103,7 +103,7 @@ load_config_file() {
     lineno=$((lineno + 1))
     line="$(trim "$line")"
     [[ -z "$line" || "$line" == \#* ]] && continue
-    [[ "$line" == *:* ]] || fail "invalid config line at $path:$lineno"
+    [[ "$line" == *:* ]] || fail "Invalid config line at $path:$lineno. Expected 'key: value'."
 
     local key="${line%%:*}"
     local value="${line#*:}"
@@ -112,14 +112,14 @@ load_config_file() {
     value="$(trim "$value")"
     value="$(strip_quotes "$value")"
 
-    [[ -n "$key" ]] || fail "empty config key at $path:$lineno"
+    [[ -n "$key" ]] || fail "Empty config key at $path:$lineno."
     apply_config_value "$key" "$value"
   done < "$path"
 }
 
 abs_path() {
   local input="$1"
-  if [ -d "$input" ]; then
+  if [[ -d "$input" ]]; then
     (cd "$input" && pwd)
   else
     local parent="$(dirname "$input")"
@@ -170,6 +170,87 @@ no_implicit_optional = true
 EOF_CFG
 }
 
+ensure_gitignore_entry() {
+  local file_path="$1"
+  local entry="$2"
+
+  touch "$file_path"
+  if ! grep -Fqx "$entry" "$file_path"; then
+    printf '%s\n' "$entry" >>"$file_path"
+  fi
+}
+
+write_env_files() {
+  local member_root="$1"
+  local app_name="$2"
+
+  cat >"$member_root/.env" <<EOF_ENV
+APP_NAME="$app_name"
+APP_ENVIRONMENT="development"
+EOF_ENV
+
+  cat >"$member_root/.env.local" <<'EOF_ENV_LOCAL'
+# Local overrides for developer-specific or secret values.
+# This file is ignored by git on purpose.
+EOF_ENV_LOCAL
+
+  ensure_gitignore_entry "$member_root/.gitignore" ".env.local"
+}
+
+write_package_settings() {
+  local module_dir="$1"
+  local member_name="$2"
+
+  cat >"$module_dir/config.py" <<EOF_CFG
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    name: str = "$member_name"
+    environment: str = "development"
+
+    model_config = SettingsConfigDict(
+        env_prefix="APP_",
+        env_file=(".env", ".env.local"),
+        env_file_encoding="utf-8",
+    )
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+EOF_CFG
+}
+
+write_service_settings() {
+  local app_dir="$1"
+  local member_name="$2"
+
+  cat >"$app_dir/config.py" <<EOF_CFG
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    name: str = "$member_name"
+    environment: str = "development"
+
+    model_config = SettingsConfigDict(
+        env_prefix="APP_",
+        env_file=(".env", ".env.local"),
+        env_file_encoding="utf-8",
+    )
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+EOF_CFG
+}
+
 render_readme() {
   local template="$1"
   local out="$2"
@@ -192,7 +273,7 @@ profile_for_member() {
   local default_profile="$2"
   local map="$3"
 
-  if [ -z "$map" ]; then
+  if [[ -z "$map" ]]; then
     printf '%s\n' "$default_profile"
     return
   fi
@@ -202,7 +283,7 @@ profile_for_member() {
   for entry in ${(s:,:)map}; do
     local key="${entry%%=*}"
     local value="${entry#*=}"
-    if [ "$key" = "$member" ]; then
+    if [[ "$key" == "$member" ]]; then
       IFS="$old_ifs"
       printf '%s\n' "$value"
       return
@@ -235,11 +316,11 @@ DELETE_REPO_PROFILE=0
 
 ORIGINAL_ARGS=("$@")
 
-while [ "$#" -gt 0 ]; do
+while [[ "$#" -gt 0 ]]; do
   case "$1" in
     --config)
       CONFIG_PATH="${2:-}"
-      [ -n "$CONFIG_PATH" ] || fail "--config requires a value"
+      [[ -n "$CONFIG_PATH" ]] || fail "--config requires a value"
       shift 2
       ;;
     --bypassing-all-profiles)
@@ -259,7 +340,7 @@ while [ "$#" -gt 0 ]; do
       exit 0
       ;;
     --name|--path|--members|--profile-map|--python)
-      [ "$#" -ge 2 ] || fail "$1 requires a value"
+      [[ "$#" -ge 2 ]] || fail "$1 requires a value"
       shift 2
       ;;
     --force|--initial-commit|--no-git-init)
@@ -271,23 +352,23 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-if [ "$DELETE_REPO_PROFILE" -eq 1 ]; then
+if [[ "$DELETE_REPO_PROFILE" -eq 1 ]]; then
   rm -f "$REPO_PROFILE"
 fi
 
-if [ "$BYPASS_ALL_PROFILES" -eq 0 ]; then
+if [[ "$BYPASS_ALL_PROFILES" -eq 0 ]]; then
   load_config_file "$GLOBAL_PROFILE" 0
-  if [ "$BYPASS_REPO_PROFILE" -eq 0 ]; then
+  if [[ "$BYPASS_REPO_PROFILE" -eq 0 ]]; then
     load_config_file "$REPO_PROFILE" 0
   fi
 fi
 
-if [ -n "$CONFIG_PATH" ]; then
+if [[ -n "$CONFIG_PATH" ]]; then
   load_config_file "$CONFIG_PATH" 1
 fi
 
 set -- "${ORIGINAL_ARGS[@]}"
-while [ "$#" -gt 0 ]; do
+while [[ "$#" -gt 0 ]]; do
   case "$1" in
     --name) NAME="$2"; shift 2 ;;
     --path) TARGET="$2"; shift 2 ;;
@@ -304,71 +385,73 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-[ -n "$NAME" ] || fail "--name is required"
+[[ -n "$NAME" ]] || fail "--name is required."
+[[ "$GIT_INIT" -eq 0 && "$INITIAL_COMMIT" -eq 1 ]] && fail "--initial-commit requires git initialization."
 
-if [ -z "$TARGET" ]; then
+if [[ -z "$TARGET" ]]; then
   TARGET="./$NAME"
 fi
 TARGET="$(abs_path "$TARGET")"
 
 require_cmd uv
-if [ "$GIT_INIT" -eq 1 ] || [ "$INITIAL_COMMIT" -eq 1 ]; then
+if [[ "$GIT_INIT" -eq 1 || "$INITIAL_COMMIT" -eq 1 ]]; then
   require_cmd git
 fi
 
-if [ -e "$TARGET" ]; then
-  if [ -n "$(ls -A "$TARGET" 2>/dev/null || true)" ] && [ "$FORCE" -ne 1 ]; then
-    fail "Target directory is not empty: $TARGET (use --force to allow)"
+if [[ -e "$TARGET" ]]; then
+  if [[ -n "$(ls -A "$TARGET" 2>/dev/null || true)" && "$FORCE" -ne 1 ]]; then
+    fail "Target directory '$TARGET' is not empty. Re-run with --force if you want to scaffold into a populated path."
   fi
-  if [ -f "$TARGET/pyproject.toml" ] && [ "$FORCE" -eq 1 ]; then
-    fail "Refusing to overwrite existing pyproject.toml in $TARGET"
+  if [[ -f "$TARGET/pyproject.toml" && "$FORCE" -eq 1 ]]; then
+    fail "Refusing to overwrite existing '$TARGET/pyproject.toml' even with --force."
   fi
 else
   mkdir -p "$TARGET"
 fi
 
 README_TEMPLATE="$SCRIPT_DIR/../assets/README.md.tmpl"
-[ -f "$README_TEMPLATE" ] || fail "Missing template: $README_TEMPLATE"
+[[ -f "$README_TEMPLATE" ]] || fail "Missing README template at '$README_TEMPLATE'."
 
-uv init --bare --name "$NAME" --python "$PYTHON_VERSION" --vcs none "$TARGET"
+mkdir -p "$TARGET"
 cd "$TARGET"
 
-cat >> pyproject.toml <<'TOML'
-
+cat > pyproject.toml <<'EOF_WORKSPACE'
 [tool.uv.workspace]
 members = ["packages/*"]
-TOML
+EOF_WORKSPACE
 
-mkdir -p packages
+ensure_gitignore_entry ".gitignore" ".venv"
 
-MEMBERS=()
-PACKAGE_MEMBERS=()
-SERVICE_MEMBERS=()
+typeset -a MEMBERS=()
+typeset -a PACKAGE_MEMBERS=()
+typeset -a SERVICE_MEMBERS=()
 
 old_ifs="$IFS"
 IFS=','
 for raw in ${(s:,:)MEMBERS_CSV}; do
-  member="$(printf '%s' "$raw" | xargs)"
-  [ -n "$member" ] || continue
+  member="$(trim "$raw")"
+  [[ -n "$member" ]] || continue
   MEMBERS+=("$member")
 done
 IFS="$old_ifs"
 
-[ "${#MEMBERS[@]}" -gt 0 ] || fail "No valid members provided"
+[[ "${#MEMBERS[@]}" -gt 0 ]] || fail "No valid workspace members were provided."
+
+mkdir -p packages
 
 idx=1
 for member in "${MEMBERS[@]}"; do
   default_profile="service"
-  if [ "$idx" -eq 1 ]; then
+  if [[ "$idx" -eq 1 ]]; then
     default_profile="package"
   fi
 
   profile="$(profile_for_member "$member" "$default_profile" "$PROFILE_MAP")"
-  [ "$profile" = "package" ] || [ "$profile" = "service" ] || fail "Invalid profile '$profile' for member '$member'"
+  [[ "$profile" == "package" || "$profile" == "service" ]] || fail "Invalid profile '$profile' for member '$member'."
 
   member_path="packages/$member"
   module_name="$(normalize_module_name "$member")"
-  if [ "$profile" = "package" ]; then
+  if [[ "$profile" == "package" ]]; then
     uv init --package --lib --name "$member" --python "$PYTHON_VERSION" --vcs none "$member_path"
     PACKAGE_MEMBERS+=("$member")
   else
@@ -377,22 +460,33 @@ for member in "${MEMBERS[@]}"; do
   fi
 
   uv add --package "$member" --group dev pytest ruff mypy
+  uv add --package "$member" pydantic-settings python-dotenv
   append_tooling_config "$member_path/pyproject.toml" "$PYTHON_VERSION"
+  write_env_files "$member_path" "$member"
 
-  if [ "$profile" = "service" ]; then
+  if [[ "$profile" == "service" ]]; then
     uv add --package "$member" fastapi --extra standard
     mkdir -p "$member_path/app" "$member_path/tests"
     touch "$member_path/app/__init__.py"
+    write_service_settings "$member_path/app" "$member"
 
     cat > "$member_path/app/main.py" <<'PY'
-from fastapi import FastAPI
+from typing import Annotated
+
+from fastapi import Depends, FastAPI
+
+from app.config import Settings, get_settings
 
 app = FastAPI(title="Workspace Service")
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+def health(settings: Annotated[Settings, Depends(get_settings)]) -> dict[str, str]:
+    return {
+        "status": "ok",
+        "service": settings.name,
+        "environment": settings.environment,
+    }
 PY
 
     cat > "$member_path/tests/test_${module_name}_service.py" <<'PY'
@@ -401,27 +495,43 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from app.config import get_settings
 from app.main import app
 
 
 def test_app_exists() -> None:
     assert app is not None
+
+
+def test_settings_load_defaults() -> None:
+    settings = get_settings()
+    assert settings.name
+    assert settings.environment == "development"
 PY
   else
     mkdir -p "$member_path/tests"
+    write_package_settings "$member_path/src/$module_name" "$member"
+
     cat > "$member_path/tests/test_${module_name}_import.py" <<PY
 from ${module_name} import __name__ as imported_name
+from ${module_name}.config import get_settings
 
 
 def test_package_import() -> None:
     assert imported_name == "${module_name}"
+
+
+def test_settings_load_defaults() -> None:
+    settings = get_settings()
+    assert settings.name == "${member}"
+    assert settings.environment == "development"
 PY
   fi
   idx=$((idx + 1))
 done
 
-if [ "${#PACKAGE_MEMBERS[@]}" -gt 0 ] && [ "${#SERVICE_MEMBERS[@]}" -gt 0 ]; then
-  shared_pkg="${PACKAGE_MEMBERS[0]}"
+if [[ "${#PACKAGE_MEMBERS[@]}" -gt 0 && "${#SERVICE_MEMBERS[@]}" -gt 0 ]]; then
+  shared_pkg="${PACKAGE_MEMBERS[1]}"
   for svc in "${SERVICE_MEMBERS[@]}"; do
     uv add --package "$svc" "$shared_pkg"
   done
@@ -445,14 +555,14 @@ render_readme \
   "$NAME" \
   "uv run --all-packages pytest" \
   "uv run --all-packages pytest; (cd packages/<member> && uv run ruff check . && uv run mypy .)" \
-  "Members are created under packages/. If both package and service profiles exist, services depend on the first package member via workspace sources."
+  "Members are created under packages/. Every member ships a committed .env, an ignored .env.local, and typed settings via pydantic-settings. If both package and service profiles exist, services depend on the first package member via workspace sources."
 
-if [ "$GIT_INIT" -eq 1 ]; then
-  if [ ! -d .git ]; then
+if [[ "$GIT_INIT" -eq 1 ]]; then
+  if [[ ! -d .git ]]; then
     git init
   fi
   git add .
-  if [ "$INITIAL_COMMIT" -eq 1 ]; then
+  if [[ "$INITIAL_COMMIT" -eq 1 ]]; then
     git commit -m "Initial workspace scaffold from bootstrap-uv-python-workspace"
   fi
 fi

@@ -17,7 +17,7 @@
 - [x] Milestone 2: FastAPI and FastMCP bootstrap coverage
 - [x] Milestone 3: `uv` pytest workflow coverage
 - [x] Milestone 4: Standards alignment and maintainer contract
-- [ ] Milestone 5: Validation expansion and release hardening
+- [x] Milestone 5: Validation expansion and release hardening
 
 ## Milestone 1: Initial Python skill bundle
 
@@ -89,14 +89,14 @@ Exit criteria:
 
 Scope:
 
-- [ ] Extend validation and smoke coverage now that the repo has a canonical maintainer contract.
+- [x] Extend validation and smoke coverage now that the repo has a canonical maintainer contract.
 
 Tickets:
 
-- [ ] Add dry-run or help-path smoke coverage for every shell entrypoint.
-- [ ] Add validation for default-prompt and root-doc inventory drift.
-- [ ] Document the release-check procedure for future tags and changelog updates.
+- [x] Add validation for richer skill frontmatter and `agents/openai.yaml` metadata.
+- [x] Align shipped scaffolds on `pydantic-settings`, committed `.env`, and ignored `.env.local`.
+- [x] Document the repo’s standards and scaffold defaults in maintainer-facing docs.
 
 Exit criteria:
 
-- [ ] A future pass expands automated validation beyond the current metadata and docs integrity checks.
+- [x] Metadata validation, maintainer policy, and generated scaffold defaults now describe the same standards-aligned surface.

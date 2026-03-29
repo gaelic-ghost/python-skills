@@ -21,6 +21,8 @@ For standards and maintainer operating guidance, see [AGENTS.md](./AGENTS.md).
 
 This repository packages reusable Python-focused Codex skills for creating `uv` projects and workspaces, bootstrapping FastAPI or FastMCP services, and standardizing pytest execution in `uv`-managed repositories.
 
+Current scaffold defaults now include typed configuration via `pydantic-settings`, a committed `.env` for safe defaults, and an ignored `.env.local` for local or secret overrides.
+
 ## Skill Guide (When To Use What)
 
 - `bootstrap-python-mcp-service`
@@ -112,6 +114,7 @@ Then ask your Agent for help finding a skill for "" or ""
 - The repository stays flat at the root; active skills are not nested under `skills/`.
 - Root docs are the canonical installation and discovery surface.
 - Each skill’s maintained contract lives in `SKILL.md` plus `agents/openai.yaml`; per-skill `README.md` files are intentionally retired.
+- Generated bootstrap projects now ship `pydantic-settings`, a committed `.env`, and an ignored `.env.local`.
 - Maintainer-side validation is standardized on `uv run pytest` and `uv run scripts/validate_repo_metadata.py`.
 
 ## Keywords

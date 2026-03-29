@@ -27,12 +27,12 @@ USAGE
 }
 
 fail() {
-  echo "Error: $*" >&2
+  echo "[ERROR] $*" >&2
   exit 1
 }
 
 require_cmd() {
-  command -v "$1" >/dev/null 2>&1 || fail "required command not found: $1"
+  command -v "$1" >/dev/null 2>&1 || fail "Missing required command '$1'. Install it and re-run the FastMCP scaffold."
 }
 
 trim() {
@@ -161,39 +161,82 @@ overlay_fastmcp_member() {
     cd "$member_path"
 
     uv remove fastapi >/dev/null 2>&1 || true
-    uv add fastmcp pydantic
+    uv add fastmcp pydantic-settings python-dotenv
 
-    rm -f app/main.py main.py tests/test_service.py tests/test_tools.py tests/test_*_service.py
+    rm -f app/main.py app/config.py main.py tests/test_service.py tests/test_tools.py tests/test_*_service.py(N)
     mkdir -p app tests
     touch app/__init__.py
 
+    cat > app/config.py <<PY
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    name: str = "${member_name}"
+    environment: str = "development"
+    log_level: str = "INFO"
+
+    model_config = SettingsConfigDict(
+        env_prefix="MCP_",
+        env_file=(".env", ".env.local"),
+        env_file_encoding="utf-8",
+    )
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+PY
+
+    cat > .env <<PY
+MCP_NAME="${member_name}"
+MCP_ENVIRONMENT="development"
+MCP_LOG_LEVEL="INFO"
+PY
+
+    cat > .env.local <<'EOF_ENV_LOCAL'
+# Local overrides for developer-specific or secret values.
+# This file is ignored by git on purpose.
+EOF_ENV_LOCAL
+
+    touch .gitignore
+    if ! grep -Fqx ".env.local" .gitignore; then
+      printf '%s\n' ".env.local" >> .gitignore
+    fi
+
     cat > app/tools.py <<'PY'
-import datetime
+from app.config import Settings
 
 
-def health_payload() -> dict[str, str]:
+def health_payload(settings: Settings) -> dict[str, str]:
     return {
         "status": "ok",
-        "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
+        "service": settings.name,
+        "environment": settings.environment,
+        "log_level": settings.log_level,
     }
 PY
 
     cat > app/server.py <<PY
 from fastmcp import FastMCP
 
+from app.config import get_settings
 from app.tools import health_payload
 
-mcp = FastMCP("${member_name}")
+settings = get_settings()
+mcp = FastMCP(settings.name)
 
 
 @mcp.tool
 def health() -> dict[str, str]:
     """Return a lightweight health payload for smoke testing."""
-    return health_payload()
+    return health_payload(settings)
 
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(log_level=settings.log_level.lower())
 PY
 
     cat > "tests/test_${module_name}_tools.py" <<'PY'
@@ -202,13 +245,15 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from app.config import get_settings
 from app.tools import health_payload
 
 
 def test_health_payload() -> None:
-    payload = health_payload()
+    payload = health_payload(get_settings())
     assert payload["status"] == "ok"
-    assert payload["timestamp"]
+    assert payload["service"]
+    assert payload["environment"] == "development"
 PY
   )
 }
@@ -217,9 +262,8 @@ render_project_readme() {
   local service_name="$1"
   local output_path="$2"
 
-  local script_dir="${0:A:h}"
   local template
-  template="$script_dir/../assets/README.md.tmpl"
+  template="$SCRIPT_DIR/../assets/README.md.tmpl"
   [[ -f "$template" ]] || fail "README template not found at '$template'"
 
   sed "s/__SERVICE_NAME__/$service_name/g" "$template" > "$output_path"
@@ -419,6 +463,7 @@ if [[ "$MODE" == "project" ]]; then
   echo "Bootstrap complete: $TARGET_PATH"
   echo "Run: cd $TARGET_PATH && uv run python app/server.py"
   echo "Checks: cd $TARGET_PATH && uv run pytest && uv run ruff check . && uv run mypy ."
+  echo "Config: keep committed defaults in $TARGET_PATH/.env and local or secret overrides in $TARGET_PATH/.env.local"
   exit 0
 fi
 
@@ -505,3 +550,4 @@ done
 echo "Workspace bootstrap complete: $TARGET_PATH"
 echo "Run example: cd $TARGET_PATH/packages/<service-member> && uv run python app/server.py"
 echo "Checks: cd $TARGET_PATH && uv run --all-packages pytest; (cd packages/<member> && uv run ruff check . && uv run mypy .)"
+echo "Config: each workspace member now includes a committed .env plus an ignored .env.local override file."

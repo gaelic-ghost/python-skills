@@ -17,6 +17,7 @@
 
 ```bash
 uv add fastapi --extra standard
+uv add pydantic-settings python-dotenv
 uv run fastapi dev app/main.py
 ```
 
@@ -41,5 +42,5 @@ uv run mypy .
 
 ## Project structure defaults
 
-- Service profile: `app/main.py`, `tests/test_service.py`, `pyproject.toml`.
+- Service profile: `app/main.py`, `app/config.py`, committed `.env`, ignored `.env.local`, `tests/test_service.py`, `pyproject.toml`.
 - Workspace root: `[tool.uv.workspace]` with members under `packages/`.

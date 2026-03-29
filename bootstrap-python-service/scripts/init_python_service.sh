@@ -27,12 +27,12 @@ USAGE
 }
 
 fail() {
-  echo "Error: $*" >&2
+  echo "[ERROR] $*" >&2
   exit 1
 }
 
 require_cmd() {
-  command -v "$1" >/dev/null 2>&1 || fail "required command not found: $1"
+  command -v "$1" >/dev/null 2>&1 || fail "Missing required command '$1'. Install it and re-run the FastAPI scaffold."
 }
 
 trim() {
@@ -283,6 +283,7 @@ if [[ "$MODE" == "project" ]]; then
   echo "Run (dev): cd $TARGET_PATH && uv run fastapi dev app/main.py"
   echo "Run (prod-style): cd $TARGET_PATH && uv run fastapi run app/main.py"
   echo "Checks: cd $TARGET_PATH && uv run pytest && uv run ruff check . && uv run mypy ."
+  echo "Config: keep committed defaults in $TARGET_PATH/.env and local or secret overrides in $TARGET_PATH/.env.local"
   exit 0
 fi
 
@@ -305,3 +306,4 @@ cmd=(
 echo "Workspace bootstrap complete: $TARGET_PATH"
 echo "Dev run example: cd $TARGET_PATH/packages/<service-member> && uv run fastapi dev app/main.py"
 echo "Checks: cd $TARGET_PATH && uv run --all-packages pytest; (cd packages/<member> && uv run ruff check . && uv run mypy .)"
+echo "Config: each workspace member now includes a committed .env plus an ignored .env.local override file."

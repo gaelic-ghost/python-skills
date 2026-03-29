@@ -1,6 +1,13 @@
 ---
 name: bootstrap-python-mcp-service
 description: Bootstrap Python MCP server projects and workspaces on macOS using uv and FastMCP with consistent defaults. Use when creating a new MCP server from scratch, scaffolding a single uv MCP project, scaffolding a uv workspace with package/service members, customizing scaffold defaults through layered YAML profiles, initializing pytest+ruff+mypy defaults, creating README.md, initializing git, running initial validation checks, or starting from OpenAPI/FastAPI with MCP mapping guidance.
+license: Apache-2.0
+compatibility: Designed for Codex and compatible Agent Skills clients on macOS with uv, git, FastMCP-oriented Python workflows, and access to the fastmcp_docs MCP server for live framework guidance.
+metadata:
+  owner: gaelic-ghost
+  repo: python-skills
+  category: python-bootstrap
+allowed-tools: Bash(uv:*) Bash(git:*) Read
 ---
 
 # Bootstrap Python MCP Service
@@ -31,8 +38,12 @@ Create FastMCP starter layouts using one direct shell entrypoint backed by the s
    - `uv run pytest`
    - `uv run ruff check .`
    - `uv run mypy .`
-5. If the task starts from an existing API, optionally generate a mapping report with `uv run scripts/assess_api_for_mcp.py ...`.
-6. Return the generated path plus the exact next-step commands emitted by the script.
+5. Confirm the generated project includes:
+   - a committed `.env` for safe defaults
+   - an ignored `.env.local` for machine-local or secret overrides
+   - typed configuration via `pydantic-settings`
+6. If the task starts from an existing API, optionally generate a mapping report with `uv run scripts/assess_api_for_mcp.py ...`.
+7. Return the generated path plus the exact next-step commands emitted by the script.
 
 ## Commands
 
@@ -100,6 +111,7 @@ uv run scripts/assess_api_for_mcp.py --fastapi app.main:app --out ./mcp_mapping_
 - mode: `project`
 - Python version: `3.13`
 - quality tooling: `pytest`, `ruff`, `mypy`
+- config baseline: committed `.env`, ignored `.env.local`, and `pydantic-settings`
 - workspace default members: `core-lib,api-service`
 - workspace default profiles: first member `package`, remaining members `service`
 
@@ -109,10 +121,12 @@ The shared scaffold basis follows uv FastAPI integration style:
 
 ```bash
 uv add fastapi --extra standard
+uv add pydantic-settings python-dotenv
 uv run fastapi dev app/main.py
 ```
 
 This skill then overlays FastMCP dependencies and server files for MCP service members.
+Generated FastMCP scaffolds should keep safe defaults in `.env`, local or secret overrides in `.env.local`, and typed runtime configuration in `app/config.py`.
 
 ## API Import Guidance
 

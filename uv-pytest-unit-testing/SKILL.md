@@ -1,6 +1,13 @@
 ---
 name: uv-pytest-unit-testing
 description: Set up and run unit tests for Python uv projects and uv workspaces with pytest. Use when creating or updating pytest configuration in pyproject.toml, installing pytest dev dependencies with uv, running tests in a workspace member package via `uv run --package`, customizing pytest workflow defaults through layered YAML profiles, organizing tests with fixtures/markers/parametrize, or troubleshooting test discovery and import failures.
+license: Apache-2.0
+compatibility: Designed for Codex and compatible Agent Skills clients on macOS with uv-managed Python projects, pytest, and shell access for the bundled scripts.
+metadata:
+  owner: gaelic-ghost
+  repo: python-skills
+  category: python-testing
+allowed-tools: Bash(uv:*) Read
 ---
 
 # Uv Pytest Unit Testing
@@ -40,6 +47,7 @@ Use this skill to standardize pytest setup and execution for uv-managed Python r
 - Use fixtures for setup reuse, and keep fixture scope minimal (`function` by default).
 - Use `@pytest.mark.parametrize` for matrix-style cases instead of hand-written loops.
 - Use `monkeypatch` for environment variables and runtime dependency replacement.
+- When generated projects use `pydantic-settings`, prefer overriding environment variables or the settings dependency rather than mutating committed `.env` files in tests.
 - Register custom marks in config to avoid marker warnings.
 
 ## Automation Suitability

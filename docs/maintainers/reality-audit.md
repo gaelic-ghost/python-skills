@@ -19,6 +19,7 @@ Check that:
 For each skill directory:
 
 - frontmatter `name` matches the directory name
+- frontmatter includes the repo-required open-standard fields: `license`, `compatibility`, `metadata`, and `allowed-tools`
 - `SKILL.md` describes the actual entrypoint and supported modes
 - every referenced file under `scripts/`, `references/`, `assets/`, and `agents/` exists
 - runtime defaults in docs match the scripts
@@ -30,7 +31,9 @@ For each `agents/openai.yaml`:
 
 - `display_name` is readable and stable
 - `short_description` matches the skill’s actual scope
+- `brand_color` is present and valid
 - `default_prompt` names the canonical skill and primary behavior accurately
+- `policy.allow_implicit_invocation` is present and reflects intended triggering behavior
 - any listed dependencies or policy knobs reflect real usage
 
 ## Script Audit
@@ -41,6 +44,7 @@ Check that:
 - help text matches actual supported flags
 - docs use `uv run ...` for Python commands
 - generated next-step commands match what the scaffold really creates
+- generated projects include the committed `.env`, ignored `.env.local`, and `pydantic-settings`-based config surface described in the docs
 
 ## Maintainer Validation Commands
 
