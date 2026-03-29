@@ -16,8 +16,9 @@
 
 ## Maintainer Defaults
 
-- Keep the active public surface limited to the four standalone top-level skills currently shipped in this repository.
+- Keep the active public surface limited to the four bundled skills shipped under `skills/` in this repository's plugin root.
 - Treat the root `README.md` as the canonical install and discovery surface for the repository.
+- Treat `.codex-plugin/plugin.json` as the canonical plugin distribution contract and `.agents/plugins/marketplace.json` as the canonical local install/testing surface.
 - Treat each skill's `SKILL.md` plus `agents/openai.yaml` as the canonical per-skill contract pair.
 - When building or updating skills in this repository, always use every applicable field, option, and feature from the open Agent Skills standard and the OpenAI Codex skill extensions. Treat "applicable" as "materially useful and accurate for the shipped skill", not as permission to add decorative or misleading metadata.
 - Do not reintroduce per-skill `README.md` files as maintained public docs unless a later repo decision explicitly restores that surface.

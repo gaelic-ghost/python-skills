@@ -2,14 +2,14 @@
 
 ## Active Surface
 
-`python-skills` currently ships four standalone top-level skills:
+`python-skills` now ships as a Codex plugin root with four bundled skills under `skills/`:
 
 - `bootstrap-python-mcp-service`
 - `bootstrap-python-service`
 - `bootstrap-uv-python-workspace`
 - `uv-pytest-unit-testing`
 
-These are the only active public install surfaces that root docs and metadata should present.
+These are the only active bundled skill surfaces that root docs, plugin metadata, and marketplace metadata should present.
 
 ## Skill Roles
 
@@ -60,6 +60,8 @@ Each active skill should maintain the full repo contract:
 ## Repo-Level Sources Of Truth
 
 - Root `README.md`: install surface and discovery guidance
+- `.codex-plugin/plugin.json`: plugin distribution contract
+- `.agents/plugins/marketplace.json`: local plugin install and smoke-test contract
 - `ROADMAP.md`: milestone history and near-term intent
 - `AGENTS.md`: repo-local authoring and validation policy
 - `docs/maintainers/reality-audit.md`: audit checklist for shipped reality

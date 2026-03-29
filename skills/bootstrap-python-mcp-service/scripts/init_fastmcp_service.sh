@@ -281,7 +281,7 @@ NO_GIT_INIT=0
 
 SKILL_NAME="bootstrap-python-mcp-service"
 SCRIPT_DIR="${0:A:h}"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 GLOBAL_PROFILE="$HOME/.config/gaelic-ghost/python-skills/$SKILL_NAME/customization.yaml"
 REPO_PROFILE="$REPO_ROOT/.codex/profiles/$SKILL_NAME/customization.yaml"
 

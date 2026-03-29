@@ -2,14 +2,14 @@
 
 ## Vision
 
-- Keep `python-skills` as a focused, durable Python skill bundle with direct top-level entrypoints, deterministic local helpers, and docs that describe the shipped behavior exactly.
+- Keep `python-skills` as a focused, durable Codex plugin bundle with deterministic local helpers, bundled skills under `skills/`, and docs that describe the shipped behavior exactly.
 
 ## Product principles
 
-- Keep the active public surface constrained to standalone, directly installable skills.
+- Keep the active public surface constrained to one plugin root that bundles four Python skills.
 - Prefer deterministic local scripts and validation over implied behavior.
 - Keep skill docs, metadata, and script behavior synchronized.
-- Keep maintainer tooling simple and repo-local rather than adding new abstraction layers.
+- Keep plugin packaging, marketplace metadata, and maintainer tooling simple and repo-local rather than adding new abstraction layers.
 
 ## Milestone Progress
 
@@ -18,6 +18,7 @@
 - [x] Milestone 3: `uv` pytest workflow coverage
 - [x] Milestone 4: Standards alignment and maintainer contract
 - [x] Milestone 5: Validation expansion and release hardening
+- [x] Milestone 6: Codex plugin packaging
 
 ## Milestone 1: Initial Python skill bundle
 
@@ -100,3 +101,21 @@ Tickets:
 Exit criteria:
 
 - [x] Metadata validation, maintainer policy, and generated scaffold defaults now describe the same standards-aligned surface.
+
+## Milestone 6: Codex plugin packaging
+
+Scope:
+
+- [x] Convert the repository from a flat skill bundle into a plugin-first Codex distribution root.
+
+Tickets:
+
+- [x] Move shipped skills under `skills/`.
+- [x] Add `.codex-plugin/plugin.json`.
+- [x] Add `.agents/plugins/marketplace.json` for local plugin testing.
+- [x] Rewrite root docs and maintainer docs around the plugin-first layout.
+- [x] Extend metadata validation to cover plugin packaging and the `skills/` directory layout.
+
+Exit criteria:
+
+- [x] The repo validates as a Codex plugin root and the bundled-skill inventory matches the live `skills/` tree.

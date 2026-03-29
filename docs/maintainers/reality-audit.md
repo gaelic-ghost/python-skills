@@ -9,9 +9,11 @@ Use this audit when changing root docs, skill contracts, scripts, references, or
 Check that:
 
 - `README.md` uses the canonical `*-skills` section schema
-- install commands use current `skills` CLI syntax
-- the active skill inventory matches the actual top-level directories with `SKILL.md`
+- `README.md` presents the repo as a plugin-first Codex bundle
+- the active skill inventory matches the actual `skills/*/SKILL.md` directories
 - the repository layout snippet matches the real repo
+- `.codex-plugin/plugin.json` exists and points at `./skills/`
+- `.agents/plugins/marketplace.json` exists and points at the repo-root plugin
 - `ROADMAP.md` uses checklist-style sections and milestone progress
 
 ## Skill Contract Audit
@@ -51,8 +53,7 @@ Check that:
 Run these from repo root:
 
 ```bash
-uv sync --dev
-zsh .github/scripts/validate_repo_docs.sh
+uv run scripts/validate_repo_metadata.py
 uv run pytest
 ```
 

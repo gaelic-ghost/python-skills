@@ -4,26 +4,28 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Bootstrap a uv Python project.
+Bootstrap a uv Python workspace.
 
 Usage:
-  init_uv_python_project.sh --name <project-name> [options]
+  init_uv_python_workspace.sh --name <workspace-name> [options]
 
 Required:
-  --name <name>               Project name
+  --name <name>                    Workspace name
 
 Options:
-  --path <path>               Target directory (default: ./<name>)
-  --profile <package|service> Scaffold profile (default: package)
-  --python <version>          Python version (default: 3.13)
-  --config <path>             Explicit YAML config path
-  --bypassing-all-profiles    Ignore global and repo profile files for this run
-  --bypassing-repo-profile    Ignore repo-local profile file for this run
-  --deleting-repo-profile     Delete repo-local profile file before execution
-  --force                     Allow non-empty target directory
-  --initial-commit            Create initial git commit on success
-  --no-git-init               Skip git init (default is enabled)
-  -h, --help                  Show help
+  --path <path>                    Target directory (default: ./<name>)
+  --members "a,b,c"                Workspace member names (default: core-lib,api-service)
+  --profile-map "a=package,b=service"
+                                   Member profile assignments
+  --python <version>               Python version (default: 3.13)
+  --config <path>                  Explicit YAML config path
+  --bypassing-all-profiles         Ignore global and repo profile files for this run
+  --bypassing-repo-profile         Ignore repo-local profile file for this run
+  --deleting-repo-profile          Delete repo-local profile file before execution
+  --force                          Allow non-empty target directory
+  --initial-commit                 Create initial git commit on success
+  --no-git-init                    Skip git init (default is enabled)
+  -h, --help                       Show help
 USAGE
 }
 
@@ -33,7 +35,7 @@ fail() {
 }
 
 require_cmd() {
-  command -v "$1" >/dev/null 2>&1 || fail "Missing required command '$1'. Install it and re-run the scaffold."
+  command -v "$1" >/dev/null 2>&1 || fail "Missing required command '$1'. Install it and re-run the workspace scaffold."
 }
 
 trim() {
@@ -70,7 +72,8 @@ apply_config_value() {
   case "$key" in
     name) NAME="$value" ;;
     path) TARGET="$value" ;;
-    profile) PROFILE="$value" ;;
+    members) MEMBERS_CSV="$value" ;;
+    profile_map) PROFILE_MAP="$value" ;;
     python) PYTHON_VERSION="$value" ;;
     force) FORCE="$(bool_to_int "$value")" ;;
     initial_commit) INITIAL_COMMIT="$(bool_to_int "$value")" ;;
@@ -178,25 +181,25 @@ ensure_gitignore_entry() {
 }
 
 write_env_files() {
-  local project_root="$1"
+  local member_root="$1"
   local app_name="$2"
 
-  cat >"$project_root/.env" <<EOF_ENV
+  cat >"$member_root/.env" <<EOF_ENV
 APP_NAME="$app_name"
 APP_ENVIRONMENT="development"
 EOF_ENV
 
-  cat >"$project_root/.env.local" <<'EOF_ENV_LOCAL'
+  cat >"$member_root/.env.local" <<'EOF_ENV_LOCAL'
 # Local overrides for developer-specific or secret values.
 # This file is ignored by git on purpose.
 EOF_ENV_LOCAL
 
-  ensure_gitignore_entry "$project_root/.gitignore" ".env.local"
+  ensure_gitignore_entry "$member_root/.gitignore" ".env.local"
 }
 
 write_package_settings() {
   local module_dir="$1"
-  local module_name="$2"
+  local member_name="$2"
 
   cat >"$module_dir/config.py" <<EOF_CFG
 from functools import lru_cache
@@ -205,7 +208,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    name: str = "$module_name"
+    name: str = "$member_name"
     environment: str = "development"
 
     model_config = SettingsConfigDict(
@@ -223,7 +226,7 @@ EOF_CFG
 
 write_service_settings() {
   local app_dir="$1"
-  local app_name="$2"
+  local member_name="$2"
 
   cat >"$app_dir/config.py" <<EOF_CFG
 from functools import lru_cache
@@ -232,7 +235,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    name: str = "$app_name"
+    name: str = "$member_name"
     environment: str = "development"
 
     model_config = SettingsConfigDict(
@@ -252,23 +255,49 @@ render_readme() {
   local template="$1"
   local out="$2"
   local name="$3"
-  local type="$4"
-  local run_cmds="$5"
-  local test_cmds="$6"
-  local notes="$7"
+  local run_cmds="$4"
+  local test_cmds="$5"
+  local notes="$6"
 
   sed \
     -e "s|__NAME__|$name|g" \
-    -e "s|__TYPE__|$type|g" \
+    -e "s|__TYPE__|workspace|g" \
     -e "s|__RUN_COMMANDS__|$run_cmds|g" \
     -e "s|__TEST_COMMANDS__|$test_cmds|g" \
     -e "s|__NOTES__|$notes|g" \
     "$template" >"$out"
 }
 
+profile_for_member() {
+  local member="$1"
+  local default_profile="$2"
+  local map="$3"
+
+  if [[ -z "$map" ]]; then
+    printf '%s\n' "$default_profile"
+    return
+  fi
+
+  local old_ifs="$IFS"
+  IFS=','
+  for entry in ${(s:,:)map}; do
+    local key="${entry%%=*}"
+    local value="${entry#*=}"
+    if [[ "$key" == "$member" ]]; then
+      IFS="$old_ifs"
+      printf '%s\n' "$value"
+      return
+    fi
+  done
+  IFS="$old_ifs"
+
+  printf '%s\n' "$default_profile"
+}
+
 NAME=""
 TARGET=""
-PROFILE="package"
+MEMBERS_CSV="core-lib,api-service"
+PROFILE_MAP=""
 PYTHON_VERSION="3.13"
 FORCE=0
 INITIAL_COMMIT=0
@@ -276,7 +305,7 @@ GIT_INIT=1
 
 SKILL_NAME="bootstrap-uv-python-workspace"
 SCRIPT_DIR="${0:A:h}"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 GLOBAL_PROFILE="$HOME/.config/gaelic-ghost/python-skills/$SKILL_NAME/customization.yaml"
 REPO_PROFILE="$REPO_ROOT/.codex/profiles/$SKILL_NAME/customization.yaml"
 
@@ -310,7 +339,7 @@ while [[ "$#" -gt 0 ]]; do
       usage
       exit 0
       ;;
-    --name|--path|--profile|--python)
+    --name|--path|--members|--profile-map|--python)
       [[ "$#" -ge 2 ]] || fail "$1 requires a value"
       shift 2
       ;;
@@ -343,7 +372,8 @@ while [[ "$#" -gt 0 ]]; do
   case "$1" in
     --name) NAME="$2"; shift 2 ;;
     --path) TARGET="$2"; shift 2 ;;
-    --profile) PROFILE="$2"; shift 2 ;;
+    --members) MEMBERS_CSV="$2"; shift 2 ;;
+    --profile-map) PROFILE_MAP="$2"; shift 2 ;;
     --python) PYTHON_VERSION="$2"; shift 2 ;;
     --force) FORCE=1; shift ;;
     --initial-commit) INITIAL_COMMIT=1; shift ;;
@@ -356,7 +386,6 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 [[ -n "$NAME" ]] || fail "--name is required."
-[[ "$PROFILE" == "package" || "$PROFILE" == "service" ]] || fail "--profile must be 'package' or 'service'."
 [[ "$GIT_INIT" -eq 0 && "$INITIAL_COMMIT" -eq 1 ]] && fail "--initial-commit requires git initialization."
 
 if [[ -z "$TARGET" ]]; then
@@ -383,32 +412,72 @@ fi
 README_TEMPLATE="$SCRIPT_DIR/../assets/README.md.tmpl"
 [[ -f "$README_TEMPLATE" ]] || fail "Missing README template at '$README_TEMPLATE'."
 
-if [[ "$PROFILE" == "package" ]]; then
-  uv init --package --lib --name "$NAME" --python "$PYTHON_VERSION" --vcs none "$TARGET"
-else
-  uv init --app --name "$NAME" --python "$PYTHON_VERSION" --vcs none "$TARGET"
-fi
-
+mkdir -p "$TARGET"
 cd "$TARGET"
-MODULE_NAME="$(normalize_module_name "$NAME")"
 
-write_env_files "$TARGET" "$NAME"
+cat > pyproject.toml <<'EOF_WORKSPACE'
+[tool.uv.workspace]
+members = ["packages/*"]
+EOF_WORKSPACE
 
-if [[ "$PROFILE" == "service" ]]; then
-  uv add fastapi --extra standard
-  uv add pydantic-settings python-dotenv
-  mkdir -p app tests
-  touch app/__init__.py
-  write_service_settings "app" "$NAME"
+ensure_gitignore_entry ".gitignore" ".venv"
 
-  cat > app/main.py <<'PY'
+typeset -a MEMBERS=()
+typeset -a PACKAGE_MEMBERS=()
+typeset -a SERVICE_MEMBERS=()
+
+old_ifs="$IFS"
+IFS=','
+for raw in ${(s:,:)MEMBERS_CSV}; do
+  member="$(trim "$raw")"
+  [[ -n "$member" ]] || continue
+  MEMBERS+=("$member")
+done
+IFS="$old_ifs"
+
+[[ "${#MEMBERS[@]}" -gt 0 ]] || fail "No valid workspace members were provided."
+
+mkdir -p packages
+
+idx=1
+for member in "${MEMBERS[@]}"; do
+  default_profile="service"
+  if [[ "$idx" -eq 1 ]]; then
+    default_profile="package"
+  fi
+
+  profile="$(profile_for_member "$member" "$default_profile" "$PROFILE_MAP")"
+  [[ "$profile" == "package" || "$profile" == "service" ]] || fail "Invalid profile '$profile' for member '$member'."
+
+  member_path="packages/$member"
+  module_name="$(normalize_module_name "$member")"
+  if [[ "$profile" == "package" ]]; then
+    uv init --package --lib --name "$member" --python "$PYTHON_VERSION" --vcs none "$member_path"
+    PACKAGE_MEMBERS+=("$member")
+  else
+    uv init --app --name "$member" --python "$PYTHON_VERSION" --vcs none "$member_path"
+    SERVICE_MEMBERS+=("$member")
+  fi
+
+  uv add --package "$member" --group dev pytest ruff mypy
+  uv add --package "$member" pydantic-settings python-dotenv
+  append_tooling_config "$member_path/pyproject.toml" "$PYTHON_VERSION"
+  write_env_files "$member_path" "$member"
+
+  if [[ "$profile" == "service" ]]; then
+    uv add --package "$member" fastapi --extra standard
+    mkdir -p "$member_path/app" "$member_path/tests"
+    touch "$member_path/app/__init__.py"
+    write_service_settings "$member_path/app" "$member"
+
+    cat > "$member_path/app/main.py" <<'PY'
 from typing import Annotated
 
 from fastapi import Depends, FastAPI
 
 from app.config import Settings, get_settings
 
-app = FastAPI(title="Service API")
+app = FastAPI(title="Workspace Service")
 
 
 @app.get("/health")
@@ -420,7 +489,7 @@ def health(settings: Annotated[Settings, Depends(get_settings)]) -> dict[str, st
     }
 PY
 
-  cat > tests/test_service.py <<'PY'
+    cat > "$member_path/tests/test_${module_name}_service.py" <<'PY'
 from pathlib import Path
 import sys
 
@@ -439,50 +508,54 @@ def test_settings_load_defaults() -> None:
     assert settings.name
     assert settings.environment == "development"
 PY
+  else
+    mkdir -p "$member_path/tests"
+    write_package_settings "$member_path/src/$module_name" "$member"
 
-  RUN_COMMANDS="uv run fastapi dev app/main.py"
-  NOTES="This profile ships a FastAPI app at app/main.py plus typed settings in app/config.py. Keep non-secret defaults in .env and local or secret overrides in .env.local."
-else
-  uv add pydantic-settings python-dotenv
-  mkdir -p tests
-  write_package_settings "src/$MODULE_NAME" "$NAME"
-
-  cat > tests/test_import.py <<PY
-from ${MODULE_NAME} import __name__ as imported_name
-from ${MODULE_NAME}.config import get_settings
+    cat > "$member_path/tests/test_${module_name}_import.py" <<PY
+from ${module_name} import __name__ as imported_name
+from ${module_name}.config import get_settings
 
 
 def test_package_import() -> None:
-    assert imported_name == "${MODULE_NAME}"
+    assert imported_name == "${module_name}"
 
 
 def test_settings_load_defaults() -> None:
     settings = get_settings()
-    assert settings.name == "${NAME}"
+    assert settings.name == "${member}"
     assert settings.environment == "development"
 PY
+  fi
+  idx=$((idx + 1))
+done
 
-  RUN_COMMANDS="uv run python -c \"from ${MODULE_NAME}.config import get_settings; print(get_settings().name)\""
-  NOTES="This profile uses src layout and uv_build for packaging, and it now ships a minimal typed settings layer in src/${MODULE_NAME}/config.py backed by .env and .env.local."
+if [[ "${#PACKAGE_MEMBERS[@]}" -gt 0 && "${#SERVICE_MEMBERS[@]}" -gt 0 ]]; then
+  shared_pkg="${PACKAGE_MEMBERS[1]}"
+  for svc in "${SERVICE_MEMBERS[@]}"; do
+    uv add --package "$svc" "$shared_pkg"
+  done
 fi
 
-uv add --group dev pytest ruff mypy
-append_tooling_config "pyproject.toml" "$PYTHON_VERSION"
+uv lock
+uv sync --all-packages
+uv run --all-packages pytest
+
+for member in "${MEMBERS[@]}"; do
+  (
+    cd "packages/$member"
+    uv run ruff check .
+    uv run mypy .
+  )
+done
 
 render_readme \
   "$README_TEMPLATE" \
   "README.md" \
   "$NAME" \
-  "$PROFILE project" \
-  "$RUN_COMMANDS" \
-  "uv run pytest; uv run ruff check .; uv run mypy ." \
-  "$NOTES"
-
-uv lock
-uv sync
-uv run pytest
-uv run ruff check .
-uv run mypy .
+  "uv run --all-packages pytest" \
+  "uv run --all-packages pytest; (cd packages/<member> && uv run ruff check . && uv run mypy .)" \
+  "Members are created under packages/. Every member ships a committed .env, an ignored .env.local, and typed settings via pydantic-settings. If both package and service profiles exist, services depend on the first package member via workspace sources."
 
 if [[ "$GIT_INIT" -eq 1 ]]; then
   if [[ ! -d .git ]]; then
@@ -490,8 +563,8 @@ if [[ "$GIT_INIT" -eq 1 ]]; then
   fi
   git add .
   if [[ "$INITIAL_COMMIT" -eq 1 ]]; then
-    git commit -m "Initial scaffold from bootstrap-uv-python-workspace"
+    git commit -m "Initial workspace scaffold from bootstrap-uv-python-workspace"
   fi
 fi
 
-echo "[OK] Project scaffold complete: $TARGET"
+echo "[OK] Workspace scaffold complete: $TARGET"

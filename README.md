@@ -1,29 +1,27 @@
 # python-skills
 
-Canonical Codex skills for Python bootstrapping, testing, FastAPI service setup, and FastMCP scaffolding with `uv`-first workflows.
+Codex plugin bundle for Python bootstrapping, testing, FastAPI service setup, and FastMCP scaffolding with `uv`-first workflows.
 
 For standards and maintainer operating guidance, see [AGENTS.md](./AGENTS.md).
 
 ## Table of Contents
 
-- [What These Agent Skills Help With](#what-these-agent-skills-help-with)
-- [Skill Guide (When To Use What)](#skill-guide-when-to-use-what)
-- [Quick Start (Vercel Skills CLI)](#quick-start-vercel-skills-cli)
-- [Install individually by Skill or Skill Pack](#install-individually-by-skill-or-skill-pack)
-- [Update Skills](#update-skills)
-- [More resources for similar Skills](#more-resources-for-similar-skills)
-- [Repository Layout](#repository-layout)
+- [What This Codex Plugin Includes](#what-this-codex-plugin-includes)
+- [Bundled Skill Guide](#bundled-skill-guide)
+- [Local Plugin Testing](#local-plugin-testing)
+- [Plugin Structure](#plugin-structure)
+- [Maintainer Workflow](#maintainer-workflow)
 - [Notes](#notes)
 - [Keywords](#keywords)
 - [License](#license)
 
-## What These Agent Skills Help With
+## What This Codex Plugin Includes
 
-This repository packages reusable Python-focused Codex skills for creating `uv` projects and workspaces, bootstrapping FastAPI or FastMCP services, and standardizing pytest execution in `uv`-managed repositories.
+This repository now ships as a plugin-first Codex bundle. The plugin root contains `.codex-plugin/plugin.json`, the bundled skills live under `skills/`, and the repo-local `.agents/plugins/marketplace.json` file lets Codex install the plugin directly from this checkout during local development.
 
 Current scaffold defaults now include typed configuration via `pydantic-settings`, a committed `.env` for safe defaults, and an ignored `.env.local` for local or secret overrides.
 
-## Skill Guide (When To Use What)
+## Bundled Skill Guide
 
 - `bootstrap-python-mcp-service`
   - Bootstrap `uv` FastMCP projects and workspaces, plus optional OpenAPI or FastAPI mapping guidance.
@@ -34,66 +32,33 @@ Current scaffold defaults now include typed configuration via `pydantic-settings
 - `uv-pytest-unit-testing`
   - Standardize pytest setup, package-targeted runs, and troubleshooting for `uv` projects and workspaces.
 
-## Quick Start (Vercel Skills CLI)
+## Local Plugin Testing
 
-Use the Vercel `skills` CLI to install from this repository.
+Codex plugin packaging follows the OpenAI plugin and skills docs:
 
-```bash
-npx skills add gaelic-ghost/python-skills
-```
+- [Build plugins](https://developers.openai.com/codex/plugins/build)
+- [Agent Skills](https://developers.openai.com/codex/skills/)
 
-## Install individually by Skill or Skill Pack
-
-```bash
-npx skills add gaelic-ghost/python-skills --skill bootstrap-python-mcp-service
-npx skills add gaelic-ghost/python-skills --skill bootstrap-python-service
-npx skills add gaelic-ghost/python-skills --skill bootstrap-uv-python-workspace
-npx skills add gaelic-ghost/python-skills --skill uv-pytest-unit-testing
-```
-
-Install all active skills:
+From a local checkout, point Codex at this repository's marketplace file:
 
 ```bash
-npx skills add gaelic-ghost/python-skills --all
+cat .agents/plugins/marketplace.json
 ```
 
-## Update Skills
+The marketplace entry is repo-local and targets the plugin root via `./`, so the bundled skills are discovered from `.codex-plugin/plugin.json` and `./skills/`.
 
-```bash
-npx skills check
-npx skills update
-```
-
-## More resources for similar Skills
-
-### Find Skills like these with the `skills` CLI by Vercel — [vercel-labs/skills](https://github.com/vercel-labs/skills)
-
-```bash
-npx skills find "python uv workspace bootstrap"
-npx skills find "fastapi scaffold"
-npx skills find "fastmcp bootstrap"
-npx skills find "pytest uv workflow"
-```
-
-### Find Skills like these with the `Find Skills` Agent Skill by Vercel — [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills)
-
-```bash
-npx skills add vercel-labs/agent-skills --skill find-skills
-```
-
-Then ask your Agent for help finding a skill for "" or ""
-
-### Leaderboard
-
-- Skills catalog: [skills.sh](https://skills.sh/)
-
-## Repository Layout
+## Plugin Structure
 
 ```text
 .
 ├── README.md
 ├── ROADMAP.md
 ├── AGENTS.md
+├── .codex-plugin/
+│   └── plugin.json
+├── .agents/
+│   └── plugins/
+│       └── marketplace.json
 ├── docs/
 │   └── maintainers/
 │       ├── reality-audit.md
@@ -103,16 +68,33 @@ Then ask your Agent for help finding a skill for "" or ""
 │       └── validate_repo_docs.sh
 ├── scripts/
 │   └── validate_repo_metadata.py
-├── bootstrap-python-mcp-service/
-├── bootstrap-python-service/
-├── bootstrap-uv-python-workspace/
-└── uv-pytest-unit-testing/
+└── skills/
+    ├── bootstrap-python-mcp-service/
+    ├── bootstrap-python-service/
+    ├── bootstrap-uv-python-workspace/
+    └── uv-pytest-unit-testing/
+```
+
+## Maintainer Workflow
+
+Keep the repo plugin-first:
+
+- Maintain `.codex-plugin/plugin.json` as the plugin distribution contract.
+- Maintain `.agents/plugins/marketplace.json` for local Codex install and smoke testing.
+- Keep bundled skills under `skills/` only; do not reintroduce a flat top-level skill layout.
+- Treat each skill's `SKILL.md` plus `agents/openai.yaml` as the canonical per-skill contract pair.
+- Run repo validation before commits:
+
+```bash
+uv run scripts/validate_repo_metadata.py
+uv run pytest
 ```
 
 ## Notes
 
-- The repository stays flat at the root; active skills are not nested under `skills/`.
 - Root docs are the canonical installation and discovery surface.
+- The repository is now plugin-first; active bundled skills live under `skills/`.
+- `.codex-plugin/plugin.json` and `.agents/plugins/marketplace.json` are maintained surfaces, not generated throwaways.
 - Each skill’s maintained contract lives in `SKILL.md` plus `agents/openai.yaml`; per-skill `README.md` files are intentionally retired.
 - Generated bootstrap projects now ship `pydantic-settings`, a committed `.env`, and an ignored `.env.local`.
 - Maintainer-side validation is standardized on `uv run pytest` and `uv run scripts/validate_repo_metadata.py`.
