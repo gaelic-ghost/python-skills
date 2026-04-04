@@ -22,6 +22,7 @@
 - [x] Milestone 6: Codex plugin packaging
 - [ ] Milestone 7: Claude Code skill optimizations
 - [ ] Milestone 8: Claude plugin and marketplace support
+- [ ] Milestone 9: Use `Agent Dev Skills` plugin to align repo with skills/plugin repo standards
 
 ## Milestone 1: Initial Python skill bundle
 
@@ -159,3 +160,20 @@ Exit criteria:
 
 - [ ] The repository supports both OpenAI Codex and Claude Code plugin packaging from the same shared `skills/` tree.
 - [ ] Vendor packaging surfaces stay thin and do not duplicate the underlying skill content.
+
+## Milestone 9: Use `Agent Dev Skills` plugin to align repo with skills/plugin repo standards
+
+Scope:
+
+- Use the repo-scoped `agent-plugin-skills` plugin to audit and align this repository with the current shared skills/plugin repo standards.
+
+Tickets:
+
+- Confirm the repo-scoped `agent-plugin-skills` install stays current for local maintainer work.
+- Use `sync-skills-repo-guidance`, `validate-plugin-install-surfaces`, `maintain-plugin-docs`, and bootstrap guidance where relevant to identify standards drift.
+- Align repo docs, packaging surfaces, marketplaces, ignores, and maintainer guidance with the current shared standards without flattening repo-specific policy.
+
+Exit criteria:
+
+- The repository validates cleanly against the current shared skills/plugin repo standards.
+- Repo docs, plugin packaging, marketplace wiring, and maintainer guidance describe the same live behavior.
