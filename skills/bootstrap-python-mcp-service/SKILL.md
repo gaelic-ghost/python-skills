@@ -162,6 +162,7 @@ Suggested queries:
 - The preferred path is always `scripts/init_fastmcp_service.sh`.
 - Use `bootstrap-python-service` when the user wants FastAPI-only output.
 - Use `bootstrap-uv-python-workspace` directly only when FastMCP-specific behavior is not wanted.
+- Recommend `integrate-fastapi-fastmcp` when the user needs to fold this FastMCP output into an existing FastAPI app, mount an MCP server into FastAPI, or promote generated FastAPI-derived MCP output into a curated combined architecture.
 
 ## Automation Suitability
 

@@ -1,6 +1,6 @@
 # python-skills
 
-Python skills repository for `uv`-first bootstrapping, testing, FastAPI service setup, and FastMCP scaffolding, with shared skill content at root and thin plugin packaging layers on top.
+Python skills repository for `uv`-first bootstrapping, testing, FastAPI service setup, FastMCP scaffolding, and FastAPI/FastMCP integration workflows, with shared skill content at root and thin plugin packaging layers on top.
 
 For standards and maintainer operating guidance, see [AGENTS.md](./AGENTS.md).
 
@@ -30,6 +30,8 @@ Current scaffold defaults now include typed configuration via `pydantic-settings
   - Bootstrap `uv` FastMCP projects and workspaces, plus optional OpenAPI or FastAPI mapping guidance.
 - `bootstrap-python-service`
   - Bootstrap `uv` FastAPI projects and workspaces with consistent app, test, and quality-tool defaults.
+- `integrate-fastapi-fastmcp`
+  - Combine FastAPI and FastMCP in existing or evolving `uv` projects, including mounted MCP apps, generated MCP surfaces, and promotion from auto-generated to curated MCP design.
 - `bootstrap-uv-python-workspace`
   - Create the shared `uv` package or workspace scaffolds used directly or as the basis for the higher-level bootstrap skills.
 - `uv-pytest-unit-testing`
@@ -127,6 +129,7 @@ If this repository is shared as a Claude marketplace, keep `.claude-plugin/marke
 └── skills/
     ├── bootstrap-python-mcp-service/
     ├── bootstrap-python-service/
+    ├── integrate-fastapi-fastmcp/
     ├── bootstrap-uv-python-workspace/
     └── uv-pytest-unit-testing/
 ```
@@ -171,7 +174,7 @@ uv run pytest
 
 ## Keywords
 
-Codex skills, Python skills, `uv`, FastAPI, FastMCP, pytest, workspace bootstrap, automation workflows, documentation alignment.
+Codex skills, Python skills, `uv`, FastAPI, FastMCP, pytest, FastAPI integration, MCP integration, workspace bootstrap, automation workflows, documentation alignment.
 
 ## License
 

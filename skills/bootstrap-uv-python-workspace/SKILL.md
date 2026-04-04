@@ -106,6 +106,7 @@ scripts/init_uv_python_project.sh --name my-service --profile service --initial-
 - Preferred paths are `scripts/init_uv_python_project.sh` and `scripts/init_uv_python_workspace.sh`.
 - Recommend `bootstrap-python-service` when the user wants FastAPI-first scaffolding.
 - Recommend `bootstrap-python-mcp-service` when the user wants FastMCP-first scaffolding.
+- Recommend `integrate-fastapi-fastmcp` when the user already has one surface and needs integration guidance for the other inside the same `uv` project or workspace.
 
 ## Automation Suitability
 

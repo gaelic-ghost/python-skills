@@ -133,6 +133,7 @@ Generated FastAPI scaffolds should use `pydantic-settings` with `.env` plus `.en
 - The preferred path is always `scripts/init_python_service.sh`.
 - Use `bootstrap-uv-python-workspace` directly only when FastAPI-specific behavior is not wanted.
 - Recommend `bootstrap-python-mcp-service` instead when the user wants a FastMCP server rather than an HTTP API service.
+- Recommend `integrate-fastapi-fastmcp` when the user wants an existing or planned FastAPI project to host, generate, or coexist with a FastMCP surface.
 
 ## Automation Suitability
 

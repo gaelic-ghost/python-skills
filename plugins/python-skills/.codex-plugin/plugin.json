@@ -1,7 +1,7 @@
 {
   "name": "python-skills",
-  "version": "1.3.0",
-  "description": "Bundled Python-focused Codex skills for uv bootstrapping, FastAPI and FastMCP scaffolding, and pytest workflows.",
+  "version": "1.4.0",
+  "description": "Bundled Python-focused Codex skills for uv bootstrapping, FastAPI and FastMCP scaffolding, FastAPI/FastMCP integration, and pytest workflows.",
   "author": {
     "name": "Gale",
     "email": "mail@galewilliams.com",
@@ -17,13 +17,14 @@
     "uv",
     "fastapi",
     "fastmcp",
-    "pytest"
+    "pytest",
+    "integration"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Python Skills",
-    "shortDescription": "Python bootstrap, service scaffold, and pytest workflows for Codex.",
-    "longDescription": "Bundle reusable Codex skills for uv project bootstrapping, FastAPI and FastMCP service scaffolding, and pytest setup in Python repositories.",
+    "shortDescription": "Python bootstrap, integration, scaffold, and pytest workflows for Codex.",
+    "longDescription": "Bundle reusable Codex skills for uv project bootstrapping, FastAPI and FastMCP service scaffolding, FastAPI/FastMCP integration work, and pytest setup in Python repositories.",
     "developerName": "gaelic-ghost",
     "category": "Productivity",
     "capabilities": [
@@ -33,7 +34,8 @@
     "websiteURL": "https://github.com/gaelic-ghost/python-skills",
     "defaultPrompt": [
       "Bootstrap a new uv FastAPI service with typed settings and a committed .env baseline.",
-      "Set up pytest defaults for this uv workspace and show the right package-targeted test commands."
+      "Set up pytest defaults for this uv workspace and show the right package-targeted test commands.",
+      "Add a FastMCP surface to an existing FastAPI project and choose the right combined-app pattern."
     ],
     "brandColor": "#0F766E"
   }
