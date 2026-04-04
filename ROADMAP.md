@@ -23,6 +23,7 @@
 - [ ] Milestone 7: Claude Code skill optimizations
 - [x] Milestone 8: Claude plugin and marketplace support
 - [x] Milestone 9: Use `Agent Plugin Skills` plugin to align repo with skills/plugin repo standards
+- [x] Milestone 10: FastAPI and FastMCP integration workflows
 
 ## Milestone 1: Initial Python skill bundle
 
@@ -177,3 +178,22 @@ Exit criteria:
 
 - [x] The repository validates cleanly against the current shared skills/plugin repo standards.
 - [x] Repo docs, plugin packaging, marketplace wiring, and maintainer guidance describe the same live behavior.
+
+## Milestone 10: FastAPI and FastMCP integration workflows
+
+Scope:
+
+- [x] Add a dedicated skill for integrating FastAPI and FastMCP in existing or evolving `uv` projects.
+- [x] Document the core composition patterns for mounting, generating, combining, and promoting FastAPI/FastMCP surfaces.
+- [x] Wire the adjacent bootstrap skills to hand off to the integration skill when the task is not fresh scaffolding.
+
+Tickets:
+
+- [x] Add the `integrate-fastapi-fastmcp` skill under the shared `skills/` tree.
+- [x] Update the bootstrap skill handoff guidance to mention the new integration path.
+- [x] Add the new skill to the root discovery docs and plugin packaging metadata.
+
+Exit criteria:
+
+- [x] The repository describes FastAPI/FastMCP integration as a first-class workflow alongside bootstrap coverage.
+- [x] The new skill is discoverable from the root docs and adjacent bootstrap skills.
